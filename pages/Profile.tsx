@@ -3,9 +3,9 @@ import React, { useEffect, useState } from 'react';
 import { useLang, useAuth } from '../App';
 import Section from '../components/ui/Section';
 import { useNavigate } from 'react-router-dom';
-import { Phone, Mail, LogOut, CheckCircle, Calendar, Loader2, BookOpen, Video, Star, Zap, Search, Wallet, TrendingUp, Plus, PlayCircle, Send } from 'lucide-react';
+import { Phone, Mail, LogOut, CheckCircle, Calendar, Loader2, BookOpen, Video, Star, Zap, Search, Wallet, TrendingUp, PlayCircle, Send, Bot, FileText, ChevronDown, ChevronUp, Rocket } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { CreditTransaction } from '../types';
+import { CreditTransaction, DbAiHistory } from '../types';
 import { useCreditBalance } from '../lib/hooks';
 
 // Helper to merge distinct table data into a unified dashboard shape
@@ -27,9 +27,14 @@ const Profile: React.FC = () => {
   const navigate = useNavigate();
   const { balance: creditBalance } = useCreditBalance();
   
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'history'>('dashboard');
+  
   const [enrollments, setEnrollments] = useState<any[]>([]);
   const [dashboardItems, setDashboardItems] = useState<DashboardItem[]>([]);
   const [transactions, setTransactions] = useState<CreditTransaction[]>([]);
+  const [aiHistory, setAiHistory] = useState<DbAiHistory[]>([]);
+  const [expandedHistoryId, setExpandedHistoryId] = useState<number | null>(null);
+  
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
@@ -51,17 +56,25 @@ const Profile: React.FC = () => {
         const myEnrollments = enrollData || [];
         setEnrollments(myEnrollments);
 
-        // 2. Fetch User Credit Transactions (History only, balance is from hook)
+        // 2. Fetch User Credit Transactions
         const { data: creditData } = await supabase
           .from('credit_transactions')
           .select('*')
           .eq('user_email', user.email)
           .order('created_at', { ascending: false });
         
-        const myTransactions = creditData as CreditTransaction[] || [];
-        setTransactions(myTransactions);
+        setTransactions(creditData as CreditTransaction[] || []);
 
-        // 3. Fetch All Available Programs (MINI, OTHER, ONLINE, FREE)
+        // 3. Fetch AI History
+        const { data: aiData } = await supabase
+          .from('km_ai_histories')
+          .select('*')
+          .eq('user_email', user.email)
+          .order('created_at', { ascending: false });
+        
+        setAiHistory(aiData as DbAiHistory[] || []);
+
+        // 4. Fetch All Available Programs & Build Dashboard
         const [miniRes, otherRes, onlineRes, freeRes] = await Promise.all([
             supabase.from('programs_mini').select('*'),
             supabase.from('programs_other').select('*'),
@@ -74,7 +87,6 @@ const Profile: React.FC = () => {
         const onlineData = onlineRes.data || [];
         const freeData = freeRes.data || [];
 
-        // 4. Normalize them into DashboardItem shape
         const allOfferings: DashboardItem[] = [];
 
         // Process MINI
@@ -133,11 +145,10 @@ const Profile: React.FC = () => {
                 description: p.description || 'Free training video',
                 isEnrolled: false,
                 enrollmentData: null,
-                videoUrl: p.video_url // Critical for free courses
+                videoUrl: p.video_url
             });
         });
 
-        // Add the Bundle manually
         allOfferings.push({
             id: 'bundle',
             title: 'Online: All 3 Courses Bundle',
@@ -149,7 +160,6 @@ const Profile: React.FC = () => {
             enrollmentData: null
         });
 
-        // 5. Map Enrollments to Offerings
         const finalDashboard = allOfferings.map(offering => {
             const match = myEnrollments.find(e => 
                 e.program === offering.title || 
@@ -163,7 +173,6 @@ const Profile: React.FC = () => {
             };
         });
 
-        // 6. Filter & Sort
         const filtered = finalDashboard.filter(i => i.isEnrolled);
         
         filtered.sort((a, b) => {
@@ -185,8 +194,15 @@ const Profile: React.FC = () => {
   }, [user, navigate]);
 
   const handleStartLearning = (item: DashboardItem) => {
-    // Navigate to dedicated classroom page
     navigate(`/learning/${item.id}`);
+  };
+
+  const toggleHistory = (id: number) => {
+    if (expandedHistoryId === id) {
+        setExpandedHistoryId(null);
+    } else {
+        setExpandedHistoryId(id);
+    }
   };
 
   if (!user) return null;
@@ -269,7 +285,7 @@ const Profile: React.FC = () => {
                         Transaction History
                     </h3>
                     
-                    <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                    <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
                         {transactions.length > 0 ? transactions.map(tx => (
                             <div key={tx.id} className="flex justify-between items-start pb-4 border-b border-white/5 last:border-0 last:pb-0">
                                 <div>
@@ -279,7 +295,6 @@ const Profile: React.FC = () => {
                                     <p className="text-xs text-zinc-500">
                                         {new Date(tx.created_at).toLocaleDateString()}
                                     </p>
-                                    {tx.note && <p className="text-xs text-zinc-400 mt-0.5">{tx.note}</p>}
                                 </div>
                                 <span className={`font-bold text-sm ${Number(tx.amount) > 0 ? 'text-green-400' : 'text-zinc-300'}`}>
                                     {Number(tx.amount) > 0 ? '+' : ''}{Number(tx.amount).toFixed(2)}
@@ -292,86 +307,160 @@ const Profile: React.FC = () => {
                 </div>
             </div>
 
-            {/* RIGHT COLUMN: TRAINING DASHBOARD */}
+            {/* RIGHT COLUMN: TABS & CONTENT */}
             <div className="lg:col-span-2">
-                <div className="mb-6 flex items-center gap-3">
-                    <BookOpen className="text-white" />
-                    <h2 className="text-2xl font-bold text-white drop-shadow-md">My Training Dashboard</h2>
+                <div className="flex gap-4 mb-6 border-b border-white/10 pb-1">
+                    <button 
+                        onClick={() => setActiveTab('dashboard')}
+                        className={`pb-3 font-bold text-lg transition-all ${activeTab === 'dashboard' ? 'text-white border-b-2 border-red-600' : 'text-zinc-500 hover:text-zinc-300'}`}
+                    >
+                        Training Dashboard
+                    </button>
+                    <button 
+                        onClick={() => setActiveTab('history')}
+                        className={`pb-3 font-bold text-lg transition-all ${activeTab === 'history' ? 'text-white border-b-2 border-red-600' : 'text-zinc-500 hover:text-zinc-300'}`}
+                    >
+                        AI History
+                    </button>
                 </div>
 
-                {loading ? (
-                    <div className="flex justify-center py-12">
-                        <Loader2 className="animate-spin text-zinc-500" size={32} />
-                    </div>
-                ) : dashboardItems.length > 0 ? (
-                    <div className="grid sm:grid-cols-2 gap-6">
-                        {dashboardItems.map((item, idx) => (
-                            <div 
-                                key={idx} 
-                                className="relative flex flex-col p-6 rounded-2xl glass-panel glass-panel-hover transition-all duration-300 hover:-translate-y-1"
-                            >
-                                {/* Status Badge */}
-                                <div className="absolute top-4 right-4">
-                                    <span className="flex items-center gap-1.5 bg-green-900/30 text-green-400 border border-green-500/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider backdrop-blur-sm">
-                                        <CheckCircle size={12} /> Enrolled
-                                    </span>
-                                </div>
+                {activeTab === 'dashboard' && (
+                    <>
+                        {loading ? (
+                            <div className="flex justify-center py-12">
+                                <Loader2 className="animate-spin text-zinc-500" size={32} />
+                            </div>
+                        ) : dashboardItems.length > 0 ? (
+                            <div className="grid sm:grid-cols-2 gap-6">
+                                {dashboardItems.map((item, idx) => (
+                                    <div 
+                                        key={idx} 
+                                        className="relative flex flex-col p-6 rounded-2xl glass-panel glass-panel-hover transition-all duration-300 hover:-translate-y-1"
+                                    >
+                                        <div className="absolute top-4 right-4">
+                                            <span className="flex items-center gap-1.5 bg-green-900/30 text-green-400 border border-green-500/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider backdrop-blur-sm">
+                                                <CheckCircle size={12} /> Enrolled
+                                            </span>
+                                        </div>
 
-                                {/* Icon & Title */}
-                                <div className="mb-4 mt-2">
-                                    <div className="w-12 h-12 rounded-xl bg-black/40 flex items-center justify-center mb-4 text-2xl border border-white/10 shadow-inner">
-                                        {item.icon}
+                                        <div className="mb-4 mt-2">
+                                            <div className="w-12 h-12 rounded-xl bg-black/40 flex items-center justify-center mb-4 text-2xl border border-white/10 shadow-inner">
+                                                {item.icon}
+                                            </div>
+                                            <h3 className="text-lg font-bold leading-tight min-h-[3rem] flex items-center text-zinc-100">{item.title}</h3>
+                                            <p className="text-xs text-zinc-400 font-bold uppercase mt-1">{item.type}</p>
+                                        </div>
+
+                                        <p className="text-zinc-400 text-sm mb-6 flex-grow">{item.description}</p>
+
+                                        <div className="mt-auto pt-4 border-t border-white/5">
+                                            <div className="bg-green-900/10 rounded-lg p-3 mb-3 border border-green-900/20">
+                                                <p className="text-xs text-green-500 font-semibold mb-1 flex items-center gap-2">
+                                                    <Calendar size={12} />
+                                                    Enrolled:
+                                                </p>
+                                                <p className="text-sm font-bold text-zinc-300">
+                                                    {new Date(item.enrollmentData?.created_at).toLocaleDateString()}
+                                                </p>
+                                            </div>
+                                            
+                                            {item.videoUrl && (
+                                            <button 
+                                                onClick={() => handleStartLearning(item)}
+                                                className="w-full bg-white text-black py-2 rounded-lg font-bold text-sm flex items-center justify-center gap-2 hover:bg-zinc-200 transition-colors shadow-lg"
+                                            >
+                                                <PlayCircle size={16} /> Start Learning
+                                            </button>
+                                            )}
+                                        </div>
                                     </div>
-                                    <h3 className="text-lg font-bold leading-tight min-h-[3rem] flex items-center text-zinc-100">{item.title}</h3>
-                                    <p className="text-xs text-zinc-400 font-bold uppercase mt-1">{item.type}</p>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="glass-panel rounded-3xl p-12 text-center h-[400px] flex flex-col justify-center">
+                                <div className="w-20 h-20 bg-white/5 text-zinc-500 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/10">
+                                    <Search size={32} />
                                 </div>
-
-                                {/* Description */}
-                                <p className="text-zinc-400 text-sm mb-6 flex-grow">{item.description}</p>
-
-                                {/* Enrolled Details */}
-                                <div className="mt-auto pt-4 border-t border-white/5">
-                                    <div className="bg-green-900/10 rounded-lg p-3 mb-3 border border-green-900/20">
-                                        <p className="text-xs text-green-500 font-semibold mb-1 flex items-center gap-2">
-                                            <Calendar size={12} />
-                                            Enrolled:
-                                        </p>
-                                        <p className="text-sm font-bold text-zinc-300">
-                                            {new Date(item.enrollmentData?.created_at).toLocaleDateString()}
-                                        </p>
-                                    </div>
-                                    
-                                    {/* Action Button: Start Learning */}
-                                    {item.videoUrl && (
-                                      <button 
-                                        onClick={() => handleStartLearning(item)}
-                                        className="w-full bg-white text-black py-2 rounded-lg font-bold text-sm flex items-center justify-center gap-2 hover:bg-zinc-200 transition-colors shadow-lg"
-                                      >
-                                        <PlayCircle size={16} /> Start Learning
-                                      </button>
-                                    )}
+                                <h3 className="text-xl font-bold text-white mb-2">No active enrollments found</h3>
+                                <p className="text-zinc-400 max-w-md mx-auto mb-8">
+                                    You haven't registered for any programs yet. Explore our courses to get started.
+                                </p>
+                                <div className="flex flex-col sm:flex-row justify-center gap-4">
+                                    <button 
+                                        onClick={() => navigate('/free')}
+                                        className="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-900/20"
+                                    >
+                                        Free Courses
+                                    </button>
                                 </div>
                             </div>
-                        ))}
-                    </div>
-                ) : (
-                    /* Empty State */
-                    <div className="glass-panel rounded-3xl p-12 text-center h-full flex flex-col justify-center">
-                        <div className="w-20 h-20 bg-white/5 text-zinc-500 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/10">
-                            <Search size={32} />
-                        </div>
-                        <h3 className="text-xl font-bold text-white mb-2">No active enrollments found</h3>
-                        <p className="text-zinc-400 max-w-md mx-auto mb-8">
-                            You haven't registered for any programs yet. Explore our courses to get started.
-                        </p>
-                        <div className="flex flex-col sm:flex-row justify-center gap-4">
-                            <button 
-                                onClick={() => navigate('/free')}
-                                className="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-900/20"
-                            >
-                                Free Courses
-                            </button>
-                        </div>
+                        )}
+                    </>
+                )}
+
+                {activeTab === 'history' && (
+                    <div className="glass-panel rounded-2xl p-6 min-h-[400px]">
+                        <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-white">
+                            <Bot size={20} className="text-red-500" />
+                            AI Tool Usage History
+                        </h3>
+                        
+                        {aiHistory.length === 0 ? (
+                            <div className="text-center py-12 text-zinc-500">
+                                <p>No history found. Try using our AI Tools!</p>
+                                <button 
+                                    onClick={() => navigate('/ai')}
+                                    className="mt-4 px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 text-white text-sm"
+                                >
+                                    Go to AI Tools
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {aiHistory.map((item) => (
+                                    <div key={item.id} className="bg-black/40 border border-white/10 rounded-xl overflow-hidden">
+                                        <div 
+                                            className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-colors"
+                                            onClick={() => toggleHistory(item.id)}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className={`p-2 rounded-lg bg-white/5 ${item.tool_name === 'MARKETING' ? 'text-yellow-500' : item.tool_name === 'BOOSTING' ? 'text-blue-500' : 'text-red-500'}`}>
+                                                    {item.tool_name === 'MARKETING' && <Zap size={16} />}
+                                                    {item.tool_name === 'BOOSTING' && <Rocket size={16} />}
+                                                    {item.tool_name === 'SPY' && <Search size={16} />}
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-white text-sm">{item.tool_name} GENERATION</p>
+                                                    <p className="text-xs text-zinc-500">{new Date(item.created_at).toLocaleString()}</p>
+                                                </div>
+                                            </div>
+                                            {expandedHistoryId === item.id ? <ChevronUp size={16} className="text-zinc-500" /> : <ChevronDown size={16} className="text-zinc-500" />}
+                                        </div>
+                                        
+                                        {expandedHistoryId === item.id && (
+                                            <div className="p-4 border-t border-white/10 bg-white/5 text-sm text-zinc-300">
+                                                <div className="mb-4">
+                                                    <h4 className="font-bold text-xs uppercase text-zinc-500 mb-2">Input Data</h4>
+                                                    <pre className="bg-black/50 p-2 rounded text-xs overflow-x-auto border border-white/5">
+                                                        {JSON.stringify(item.input_data, null, 2)}
+                                                    </pre>
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-bold text-xs uppercase text-zinc-500 mb-2">Result Data</h4>
+                                                    <div className="bg-black/50 p-3 rounded border border-white/5 whitespace-pre-wrap max-h-60 overflow-y-auto">
+                                                        {item.tool_name === 'MARKETING' ? (
+                                                            item.result_data.text
+                                                        ) : (
+                                                            <pre className="text-xs">{JSON.stringify(item.result_data, null, 2)}</pre>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

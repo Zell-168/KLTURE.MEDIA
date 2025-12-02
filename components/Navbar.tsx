@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLang, useAuth } from '../App';
-import { Menu, X, Globe, User, LogOut, LogIn, Wallet } from 'lucide-react';
+import { Menu, X, Globe, User, LogOut, LogIn, Wallet, Bot, Briefcase } from 'lucide-react';
 import { useCreditBalance } from '../lib/hooks';
 
 const Navbar: React.FC = () => {
@@ -23,8 +23,10 @@ const Navbar: React.FC = () => {
     setIsOpen(false);
   };
 
-  // Removed Mini, Other, Online links
+  // Nav Links
   const navLinks = [
+    { name: t.nav.ai, path: '/ai' },
+    { name: t.nav.clients, path: '/clients' },
     { name: t.nav.free, path: '/free' },
     { name: t.nav.community, path: '/community' },
   ];
@@ -46,8 +48,9 @@ const Navbar: React.FC = () => {
               <Link
                 key={link.path}
                 to={link.path}
-                className="text-sm font-medium text-zinc-300 hover:text-white transition-all hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]"
+                className={`text-sm font-medium transition-all hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)] ${link.path === '/ai' ? 'text-red-400 hover:text-red-300 font-bold flex items-center gap-1.5' : 'text-zinc-300 hover:text-white'}`}
               >
+                {link.path === '/ai' && <Bot size={16} />}
                 {link.name}
               </Link>
             ))}
@@ -125,8 +128,9 @@ const Navbar: React.FC = () => {
             <button
               key={link.path}
               onClick={() => handleNav(link.path)}
-              className="text-left text-xl font-medium text-white"
+              className={`text-left text-xl font-medium flex items-center gap-2 ${link.path === '/ai' ? 'text-red-500' : 'text-white'}`}
             >
+              {link.path === '/ai' && <Bot size={20} />}
               {link.name}
             </button>
           ))}

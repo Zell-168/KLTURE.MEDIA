@@ -3,16 +3,17 @@ import React, { useEffect, useState } from 'react';
 import { useLang, useAuth } from '../App';
 import Section from '../components/ui/Section';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, ArrowRight, Wallet, TrendingUp, Send } from 'lucide-react';
+import { CheckCircle2, ArrowRight, Wallet, TrendingUp, Send, MessageSquareQuote } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import BannerCarousel from '../components/ui/BannerCarousel';
-import { DbHomepageSlider } from '../types';
+import { DbHomepageSlider, DbClientFeedback } from '../types';
 
 const Home: React.FC = () => {
   const { t } = useLang();
   const { user } = useAuth();
   const [creditBalance, setCreditBalance] = useState<number>(0);
   const [sliderImages, setSliderImages] = useState<DbHomepageSlider[]>([]);
+  const [feedbackImages, setFeedbackImages] = useState<DbClientFeedback[]>([]);
 
   // Fetch Credits for CTA
   useEffect(() => {
@@ -30,22 +31,33 @@ const Home: React.FC = () => {
     }
   }, [user]);
 
-  // Fetch Slider Images
+  // Fetch Data
   useEffect(() => {
-    const fetchSlider = async () => {
+    const fetchData = async () => {
         try {
-            const { data } = await supabase
+            // Main Slider
+            const sliderReq = supabase
                 .from('homepage_slider')
                 .select('*')
                 .eq('is_active', true)
                 .order('display_order', { ascending: true });
             
-            if (data) setSliderImages(data);
+            // Feedback Slider - Updated Table Name
+            const feedbackReq = supabase
+                .from('km_client_feedbacks')
+                .select('*')
+                .eq('is_active', true)
+                .order('display_order', { ascending: true });
+
+            const [sliderRes, feedbackRes] = await Promise.all([sliderReq, feedbackReq]);
+
+            if (sliderRes.data) setSliderImages(sliderRes.data);
+            if (feedbackRes.data) setFeedbackImages(feedbackRes.data);
         } catch (error) {
-            console.error('Error fetching slider:', error);
+            console.error('Error fetching data:', error);
         }
     };
-    fetchSlider();
+    fetchData();
   }, []);
 
   return (
@@ -134,6 +146,32 @@ const Home: React.FC = () => {
                   </div>
               </div>
            </div>
+        </Section>
+      )}
+
+      {/* Client Feedback Slider - Square 1:1 */}
+      {feedbackImages.length > 0 && (
+        <Section className="py-8">
+            <div className="text-center mb-8 animate-fade-in">
+                <div className="flex items-center justify-center gap-2 text-red-500 mb-2 drop-shadow-[0_0_8px_rgba(220,38,38,0.5)]">
+                    <MessageSquareQuote size={32} />
+                </div>
+                <h2 className="text-3xl font-bold text-white drop-shadow-md">Client Feedback</h2>
+                <p className="text-zinc-400">Success stories from our community</p>
+            </div>
+            
+            {/* Constrained width container for desktop to maintain square aspect ratio without being huge */}
+            <div className="max-w-md mx-auto glass-panel p-4 rounded-[2.5rem] relative transform hover:-translate-y-2 transition-transform duration-500">
+                 <div className="rounded-[1.5rem] overflow-hidden shadow-2xl border border-white/5 bg-black/50">
+                    <BannerCarousel 
+                        items={feedbackImages}
+                        aspectRatio="pb-[100%]" // Square 1:1
+                        autoPlayInterval={5000}
+                    />
+                 </div>
+                 {/* Decorative elements */}
+                 <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[110%] bg-gradient-to-tr from-red-500/20 to-blue-500/20 rounded-full blur-2xl opacity-50"></div>
+            </div>
         </Section>
       )}
 

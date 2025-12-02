@@ -5,11 +5,13 @@ export const TRANSLATIONS: Record<'en' | 'kh', TranslationData> = {
   en: {
     nav: {
       home: "Home",
-      mini: "Mini Program", // Kept in types but will be unused in Nav
-      other: "Other Programs", // Kept in types but will be unused in Nav
-      online: "Online Courses", // Kept in types but will be unused in Nav
+      mini: "Mini Program",
+      other: "Other Programs", 
+      online: "Online Courses",
       free: "Free Courses",
       community: "Community",
+      ai: "AI Tools",
+      clients: "Our Clients",
       about: "About",
       faq: "FAQ & Policy",
       contact: "Contact",
@@ -166,6 +168,8 @@ export const TRANSLATIONS: Record<'en' | 'kh', TranslationData> = {
       online: "វគ្គសិក្សាតាមអនឡាញ",
       free: "វគ្គសិក្សាហ្វ្រី",
       community: "សហគមន៍",
+      ai: "AI Tools",
+      clients: "អតិថិជន",
       about: "អំពីយើង",
       faq: "សំណួរ & គោលការណ៍",
       contact: "ទំនាក់ទំនង",

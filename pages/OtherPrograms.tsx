@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useLang } from '../App';
 import Section from '../components/ui/Section';
@@ -67,20 +68,20 @@ const OtherPrograms: React.FC = () => {
 
   return (
     <div>
-      <Section className="pb-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">{t.other.title}</h1>
-          <p className="text-zinc-500 mb-8">{t.other.note}</p>
-        </div>
+      <Section className="pb-8 text-center">
+        <h1 className="text-3xl md:text-4xl font-bold mb-4 text-white drop-shadow-md">{t.other.title}</h1>
+        <p className="text-zinc-400 mb-8 max-w-2xl mx-auto">{t.other.note}</p>
 
         {/* Banner Carousel */}
         {!loading && programs.some(p => p.image_url) && (
-          <div className="px-4">
-             <BannerCarousel items={programs.filter(p => p.image_url).map(p => ({
-                id: p.id,
-                image_url: p.image_url!,
-                title: p.title
-              }))} />
+          <div className="glass-panel p-2 rounded-2xl">
+            <div className="rounded-xl overflow-hidden">
+                <BannerCarousel items={programs.filter(p => p.image_url).map(p => ({
+                    id: p.id,
+                    image_url: p.image_url!,
+                    title: p.title
+                }))} />
+            </div>
           </div>
         )}
       </Section>
@@ -91,7 +92,7 @@ const OtherPrograms: React.FC = () => {
         </div>
       ) : (
         <Section className="pt-0">
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
             {programs.map((prog, idx) => {
                // Determine which trainers to show
                let displayTrainers: DbTrainer[] = [];
@@ -99,7 +100,6 @@ const OtherPrograms: React.FC = () => {
                if (prog.other_program_trainers && prog.other_program_trainers.length > 0) {
                  displayTrainers = prog.other_program_trainers.map((item: any) => item.trainers).filter(Boolean);
                } else {
-                 // Fallback: show first 5 of all trainers
                  displayTrainers = allTrainers.slice(0, 5);
                }
 
@@ -108,38 +108,42 @@ const OtherPrograms: React.FC = () => {
                     : (prog.trainers_count || 'Trainers TBA');
 
                return (
-                  <div key={prog.id} className={`border border-zinc-200 rounded-2xl p-8 hover:shadow-lg transition-all flex flex-col ${idx % 2 === 0 ? 'bg-white' : 'bg-zinc-50'}`}>
+                  <div key={prog.id} className="glass-panel glass-panel-hover rounded-2xl p-8 flex flex-col transition-all duration-300 hover:-translate-y-1">
                     <div className="mb-6">
-                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 ${idx % 2 === 0 ? 'bg-zinc-900 text-white' : 'bg-red-600 text-white'}`}>
-                          {idx % 2 === 0 ? <Zap size={24} /> : <Star size={24} />}
+                      <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-4 border border-white/10 ${idx % 2 === 0 ? 'bg-white/10 text-white' : 'bg-red-600/20 text-red-500'}`}>
+                          {idx % 2 === 0 ? <Zap size={28} /> : <Star size={28} />}
                       </div>
-                      <h2 className="text-2xl font-bold mb-2">{prog.title}</h2>
-                      <div className="text-sm font-bold text-zinc-500 mb-2">{trainerCountDisplay} • {prog.price}</div>
+                      <h2 className="text-2xl font-bold mb-2 text-white">{prog.title}</h2>
+                      <div className="text-sm font-bold text-zinc-400 mb-4">{trainerCountDisplay} • {prog.price}</div>
                       
-                      {prog.video_url && <VideoPlayer url={prog.video_url} />}
+                      {prog.video_url && (
+                          <div className="mb-6 rounded-lg overflow-hidden border border-white/10 shadow-lg">
+                            <VideoPlayer url={prog.video_url} />
+                          </div>
+                      )}
                       
-                      <p className="text-zinc-600 leading-relaxed mt-4 mb-6">{prog.description}</p>
+                      <p className="text-zinc-300 leading-relaxed mt-4 mb-6">{prog.description}</p>
                       
                       {/* Meet The Trainers Section */}
                       <div className="mb-6">
-                         <h4 className="font-bold text-sm text-zinc-900 mb-3 border-b border-zinc-200 pb-2">Meet The Trainers</h4>
+                         <h4 className="font-bold text-sm text-zinc-200 mb-3 border-b border-white/10 pb-2">Meet The Trainers</h4>
                          {displayTrainers.length > 0 ? (
                            <div className="flex flex-wrap gap-3">
                                {displayTrainers.map((tr, i) => (
-                                  <div key={i} className="text-center">
-                                      <div className="w-12 h-12 rounded-full mx-auto mb-1 overflow-hidden border border-zinc-200">
+                                  <div key={i} className="text-center group">
+                                      <div className="w-12 h-12 rounded-full mx-auto mb-1 overflow-hidden border border-white/10 group-hover:border-red-500 transition-all">
                                           <img 
                                               src={tr.image_url} 
                                               alt={tr.name} 
                                               className="w-full h-full object-cover" 
                                           />
                                       </div>
-                                      <p className="text-[10px] font-bold text-zinc-600">{tr.name}</p>
+                                      <p className="text-[10px] font-bold text-zinc-400 group-hover:text-white">{tr.name}</p>
                                   </div>
                                ))}
                            </div>
                          ) : (
-                           <p className="text-sm text-zinc-400 italic">Trainers to be announced.</p>
+                           <p className="text-sm text-zinc-500 italic">Trainers to be announced.</p>
                          )}
                       </div>
 
@@ -147,7 +151,7 @@ const OtherPrograms: React.FC = () => {
                     <div className="mt-auto">
                       <button 
                           onClick={() => handleInterest(prog.title)}
-                          className={`w-full py-3 rounded-lg font-bold transition-colors ${idx % 2 === 0 ? 'border border-black hover:bg-black hover:text-white' : 'bg-black text-white hover:bg-zinc-800'}`}
+                          className="w-full py-3 rounded-xl font-bold transition-all bg-white text-black hover:bg-zinc-200 shadow-lg"
                       >
                           {t.other.interest}
                       </button>

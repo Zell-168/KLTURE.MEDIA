@@ -88,6 +88,14 @@ export interface DbHomepageSlider {
   created_at: string;
 }
 
+export interface DbClientFeedback {
+  id: number;
+  image_url: string;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+}
+
 export interface SalesRecord {
   id: number;
   created_at: string;
@@ -96,6 +104,28 @@ export interface SalesRecord {
   category: 'MINI' | 'OTHER' | 'ONLINE' | 'BUNDLE';
   amount: number;
   note?: string;
+}
+
+export interface DbAiHistory {
+  id: number;
+  user_email: string;
+  tool_name: 'MARKETING' | 'BOOSTING' | 'SPY';
+  input_data: any;
+  result_data: any;
+  created_at: string;
+}
+
+export interface DbClient {
+  id: number;
+  client_name: string;
+  tiktok_url: string;
+  category: 'Education' | 'Comedy' | 'Technology' | 'Health' | 'Other';
+  project_manager_id: number;
+  is_active: boolean;
+  display_order: number;
+  created_at: string;
+  // Joined Data
+  trainers?: DbTrainer;
 }
 
 export interface ProgramDetails {
@@ -147,6 +177,8 @@ export interface TranslationData {
     online: string;
     free: string;
     community: string;
+    ai: string;
+    clients: string;
     about: string;
     faq: string;
     contact: string;
@@ -208,13 +240,6 @@ export interface TranslationData {
     watchBtn: string;
     loginToEnroll: string;
   };
-  about: {
-    title: string;
-    content: string[];
-    mission: string;
-    visionTitle: string;
-    visionList: string[];
-  };
   community: {
     title: string;
     subtitle: string;
@@ -232,6 +257,13 @@ export interface TranslationData {
     formDesc: string;
     delete: string;
     managementTitle: string;
+  };
+  about: {
+    title: string;
+    content: string[];
+    mission: string;
+    visionTitle: string;
+    visionList: string[];
   };
   faq: {
     title: string;

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../App';
@@ -105,7 +106,7 @@ const LearningClassroom: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-white">
+      <div className="min-h-screen flex items-center justify-center text-white">
         <div className="text-center">
             <Loader2 className="animate-spin mx-auto mb-4 text-red-600" size={48} />
             <p className="text-zinc-500 font-medium">Loading classroom...</p>
@@ -117,15 +118,15 @@ const LearningClassroom: React.FC = () => {
   if (error || !data) {
     return (
       <Section className="min-h-screen flex items-center justify-center">
-        <div className="max-w-md mx-auto text-center">
-             <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
+        <div className="max-w-md mx-auto text-center glass-panel p-8 rounded-3xl">
+             <div className="w-16 h-16 bg-red-900/20 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6 border border-red-500/30">
                 <AlertCircle size={32} />
              </div>
-             <h2 className="text-2xl font-bold mb-2">Unable to Load Course</h2>
-             <p className="text-zinc-500 mb-8">{error}</p>
+             <h2 className="text-2xl font-bold mb-2 text-white">Unable to Load Course</h2>
+             <p className="text-zinc-400 mb-8">{error}</p>
              <button 
                 onClick={() => navigate('/profile')}
-                className="bg-black text-white px-6 py-3 rounded-xl font-bold"
+                className="bg-white text-black px-6 py-3 rounded-xl font-bold hover:bg-zinc-200 transition-colors"
              >
                 Back to Dashboard
              </button>
@@ -135,24 +136,24 @@ const LearningClassroom: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 flex flex-col">
-       {/* Simple Header */}
-       <header className="bg-white border-b border-zinc-200 px-6 py-4 flex items-center justify-between sticky top-0 z-50">
+    <div className="min-h-screen flex flex-col">
+       {/* Glass Header */}
+       <header className="glass-panel border-b border-white/5 px-6 py-4 flex items-center justify-between sticky top-0 z-50 backdrop-blur-xl">
            <div className="flex items-center gap-4">
                <button 
                   onClick={() => navigate('/profile')}
-                  className="p-2 hover:bg-zinc-100 rounded-full transition-colors text-zinc-600 hover:text-black"
+                  className="p-2 hover:bg-white/10 rounded-full transition-colors text-zinc-400 hover:text-white"
                   title="Back to Dashboard"
                >
                   <ArrowLeft size={24} />
                </button>
                <div>
-                   <h1 className="font-bold text-lg leading-none text-zinc-900">{data.title}</h1>
-                   <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">{data.type_label}</span>
+                   <h1 className="font-bold text-lg leading-none text-white">{data.title}</h1>
+                   <span className="text-xs font-bold text-red-500 uppercase tracking-wider">{data.type_label}</span>
                </div>
            </div>
            
-           <div className="hidden md:flex items-center gap-2 text-sm font-medium text-green-600 bg-green-50 px-3 py-1.5 rounded-full">
+           <div className="hidden md:flex items-center gap-2 text-sm font-medium text-green-400 bg-green-900/20 border border-green-500/20 px-3 py-1.5 rounded-full">
                <CheckCircle size={16} /> Enrolled Student
            </div>
        </header>
@@ -163,26 +164,28 @@ const LearningClassroom: React.FC = () => {
                 
                 {/* Video Column */}
                 <div className="lg:col-span-2">
-                    <VideoPlayer url={data.video_url} className="shadow-2xl" />
+                    <div className="rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+                        <VideoPlayer url={data.video_url} className="w-full aspect-video" />
+                    </div>
                 </div>
 
                 {/* Info Column */}
                 <div className="lg:col-span-1">
-                    <div className="bg-white rounded-2xl p-6 border border-zinc-200 shadow-sm h-full">
+                    <div className="glass-panel rounded-2xl p-6 h-full flex flex-col">
                         <div className="flex items-center gap-3 mb-6">
-                             <div className="w-10 h-10 bg-red-50 text-red-600 rounded-lg flex items-center justify-center">
+                             <div className="w-10 h-10 bg-red-600/20 text-red-500 rounded-lg flex items-center justify-center border border-red-500/20">
                                  <BookOpen size={20} />
                              </div>
-                             <h2 className="font-bold text-lg">Course Details</h2>
+                             <h2 className="font-bold text-lg text-white">Course Details</h2>
                         </div>
                         
-                        <div className="prose prose-sm prose-zinc text-zinc-600">
-                            <h3 className="text-black font-bold text-base mb-2">{data.title}</h3>
-                            <p className="whitespace-pre-wrap">{data.description || "No description provided."}</p>
+                        <div className="text-zinc-300 space-y-4 flex-grow">
+                            <h3 className="text-white font-bold text-base">{data.title}</h3>
+                            <p className="whitespace-pre-wrap text-sm leading-relaxed">{data.description || "No description provided."}</p>
                         </div>
 
-                        <div className="mt-8 pt-8 border-t border-zinc-100">
-                            <p className="text-xs text-zinc-400 font-medium text-center">
+                        <div className="mt-8 pt-8 border-t border-white/10">
+                            <p className="text-xs text-zinc-500 font-medium text-center">
                                 Need help? Contact support via Telegram.
                             </p>
                         </div>

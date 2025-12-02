@@ -16,6 +16,12 @@ import SignIn from './pages/SignIn';
 import Profile from './pages/Profile';
 import Trainers from './pages/Trainers';
 import LearningClassroom from './pages/LearningClassroom';
+import OurClients from './pages/OurClients';
+// AI Tools
+import AiHub from './pages/ai/AiHub';
+import AiMarketing from './pages/ai/AiMarketing';
+import AiBoosting from './pages/ai/AiBoosting';
+import AiSpy from './pages/ai/AiSpy';
 import { User as UserIcon } from 'lucide-react';
 
 // Language Context
@@ -116,6 +122,13 @@ const App: React.FC = () => {
                 <Route path="/signin" element={<SignIn />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/learning/:courseId" element={<LearningClassroom />} />
+                <Route path="/clients" element={<OurClients />} />
+                
+                {/* AI Tools Routes */}
+                <Route path="/ai" element={<AiHub />} />
+                <Route path="/ai/marketing" element={<AiMarketing />} />
+                <Route path="/ai/boosting" element={<AiBoosting />} />
+                <Route path="/ai/spy" element={<AiSpy />} />
               </Routes>
             </main>
             <Footer />
