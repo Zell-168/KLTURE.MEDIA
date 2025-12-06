@@ -4,8 +4,7 @@ import { useLang } from '../App';
 import Section from '../components/ui/Section';
 import { supabase } from '../lib/supabase';
 import { DbClient } from '../types';
-import { Loader2, Briefcase, ExternalLink, Play, Filter } from 'lucide-react';
-import VideoPlayer from '../components/ui/VideoPlayer';
+import { Loader2, Briefcase, Play, Filter, Image as ImageIcon } from 'lucide-react';
 
 const OurClients: React.FC = () => {
   const { t } = useLang();
@@ -19,7 +18,7 @@ const OurClients: React.FC = () => {
       try {
         const { data, error } = await supabase
           .from('km_clients')
-          .select('*')
+          .select('*, project_manager:trainers(*)')
           .eq('is_active', true)
           .order('category', { ascending: true })
           .order('display_order', { ascending: true });
@@ -34,6 +33,26 @@ const OurClients: React.FC = () => {
     };
     fetchClients();
   }, []);
+
+  // Handle TikTok Embed Script Reloading
+  useEffect(() => {
+    if (!loading && clients.length > 0) {
+      // Small timeout to allow DOM to populate with blockquotes
+      const timer = setTimeout(() => {
+         // Clean up old scripts to force reload
+         const existingScripts = document.querySelectorAll('script[src*="tiktok.com/embed.js"]');
+         existingScripts.forEach(s => s.remove());
+
+         // Inject new script to parse the embeds
+         const script = document.createElement('script');
+         script.src = 'https://www.tiktok.com/embed.js';
+         script.async = true;
+         document.body.appendChild(script);
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [loading, clients, activeCategory]);
 
   // Extract Categories
   const categories = ['All', ...Array.from(new Set(clients.map(c => c.category).filter(Boolean)))];
@@ -91,48 +110,88 @@ const OurClients: React.FC = () => {
                 </button>
             </div>
         ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
                 {filteredClients.map(client => (
                     <div key={client.id} className="glass-panel rounded-2xl overflow-hidden flex flex-col group hover:-translate-y-2 transition-all duration-300 hover:shadow-[0_10px_30px_-10px_rgba(220,38,38,0.2)]">
-                        {/* Vertical Video Container (9:16 Aspect Ratio) */}
-                        <div className="relative w-full pt-[177.77%] bg-black">
-                            <div className="absolute inset-0">
-                                {client.video_url ? (
-                                   // Using VideoPlayer but forcing height to fill container
-                                   <div className="w-full h-full [&_iframe]:w-full [&_iframe]:h-full [&_div]:h-full">
-                                       <VideoPlayer url={client.video_url} className="w-full h-full !pt-0 !rounded-none" />
-                                   </div>
-                                ) : (
-                                    // Fallback Image
-                                    <img 
-                                        src={client.image_url || 'https://via.placeholder.com/450x800?text=No+Preview'} 
-                                        alt={client.client_name}
-                                        className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity"
+                        
+                        {/* 1. MEDIA SECTION: Embed or Image */}
+                        <div className="relative w-full bg-black min-h-[300px] flex items-center justify-center">
+                            {client.tiktok_embed_html ? (
+                                <div className="w-full flex justify-center bg-black p-1">
+                                    {/* Wrapper for embed */}
+                                    <div 
+                                        className="w-full [&_blockquote]:m-0 [&_blockquote]:w-full [&_blockquote]:min-w-[unset] flex justify-center"
+                                        dangerouslySetInnerHTML={{ __html: client.tiktok_embed_html }} 
                                     />
-                                )}
-                            </div>
+                                </div>
+                            ) : (
+                                <div className="w-full h-full min-h-[400px] relative">
+                                    {client.image_url ? (
+                                         <img 
+                                            src={client.image_url} 
+                                            alt={client.client_name}
+                                            className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                                        />
+                                    ) : (
+                                        <div className="absolute inset-0 flex items-center justify-center bg-zinc-900">
+                                            <ImageIcon className="text-zinc-700" size={48} />
+                                        </div>
+                                    )}
+                                    {/* Overlay Gradient for non-embeds */}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent opacity-80 pointer-events-none"></div>
+                                </div>
+                            )}
                             
-                            {/* Overlay Gradient */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90 pointer-events-none"></div>
-
-                            {/* Client Info Overlay */}
-                            <div className="absolute bottom-0 left-0 w-full p-6 z-10 pointer-events-none">
-                                {client.category && (
-                                    <span className="inline-block px-2 py-1 bg-white/10 backdrop-blur-md border border-white/10 rounded text-xs font-bold text-zinc-300 mb-2">
+                             {/* Category Tag (Absolute positioning might interfere with embed interaction, so mostly keep it out of way or for image fallback) */}
+                            {client.category && !client.tiktok_embed_html && (
+                                <div className="absolute top-4 right-4 pointer-events-none">
+                                     <span className="inline-block px-3 py-1 bg-black/60 backdrop-blur-md border border-white/10 rounded-full text-[10px] font-bold text-white uppercase tracking-wider shadow-lg">
                                         {client.category}
                                     </span>
-                                )}
-                                <h3 className="text-xl font-bold text-white mb-3 drop-shadow-md">{client.client_name}</h3>
-                                
-                                <a 
-                                    href={client.tiktok_url} 
-                                    target="_blank" 
-                                    rel="noreferrer"
-                                    className="flex items-center justify-center gap-2 w-full py-3 bg-red-600/90 hover:bg-red-600 text-white font-bold rounded-xl transition-all shadow-lg backdrop-blur-sm pointer-events-auto"
-                                >
-                                    <Play size={16} fill="currentColor" /> Visit TikTok
-                                </a>
-                            </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* 2. CLIENT INFO SECTION */}
+                        <div className="p-6 flex flex-col flex-grow bg-zinc-950 relative border-t border-white/5">
+                            {/* Category Tag for Embed View (Since we can't easily overlay on iframe) */}
+                            {client.category && client.tiktok_embed_html && (
+                                <div className="mb-3">
+                                     <span className="inline-block px-2 py-1 bg-white/10 border border-white/10 rounded text-[10px] font-bold text-zinc-300 uppercase tracking-wider">
+                                        {client.category}
+                                    </span>
+                                </div>
+                            )}
+
+                            {/* Client Name */}
+                            <h3 className="text-2xl font-black text-white mb-6 drop-shadow-md leading-tight">{client.client_name}</h3>
+                            
+                            {/* Project Manager Profile */}
+                            {client.project_manager && (
+                                <div className="mt-auto pt-4 border-t border-white/10 flex items-center gap-3 mb-4">
+                                    <div className="w-10 h-10 rounded-full overflow-hidden border border-white/20 shrink-0">
+                                        <img 
+                                            src={client.project_manager.image_url} 
+                                            alt={client.project_manager.name}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wide">Managed By</p>
+                                        <p className="text-sm font-bold text-zinc-200">{client.project_manager.name}</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Visit Button */}
+                            <a 
+                                href={client.tiktok_url} 
+                                target="_blank" 
+                                rel="noreferrer"
+                                className="mt-auto flex items-center justify-center gap-2 w-full py-3 bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white border border-red-600/30 hover:border-red-600 font-bold rounded-xl transition-all shadow-lg text-sm group-hover:shadow-red-900/20"
+                            >
+                                <Play size={16} fill="currentColor" /> Visit TikTok Profile
+                            </a>
                         </div>
                     </div>
                 ))}

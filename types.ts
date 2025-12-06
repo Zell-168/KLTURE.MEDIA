@@ -120,12 +120,15 @@ export interface DbClient {
   id: number;
   client_name: string;
   tiktok_url: string;
-  video_url?: string; // New field
-  image_url?: string; // New field
+  tiktok_embed_html?: string;
+  image_url?: string;
   category: string;
+  project_manager_id?: number;
   is_active: boolean;
   display_order: number;
   created_at: string;
+  // Joined Data
+  project_manager?: DbTrainer; 
 }
 
 export interface ProgramDetails {
