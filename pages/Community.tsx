@@ -24,14 +24,18 @@ const Community: React.FC = () => {
         // IMPORTANT: We do NOT fetch the password field.
         const { data: userData, error: userError } = await supabase
           .from('registrations')
-          .select('id, full_name, email, program, created_at')
+          .select('id, full_name, email, phone_number, program, created_at')
           .order('created_at', { ascending: false });
 
         if (userError) throw userError;
 
-        // Deduplicate users by email
-        const uniqueUsers = Array.from(new Map(userData.map(u => [u.email, u])).values());
-        setUsers(uniqueUsers);
+        if (userData) {
+           // Deduplicate users by email
+           const uniqueUsers = Array.from(new Map(userData.map(u => [u.email, u])).values()) as User[];
+           setUsers(uniqueUsers);
+        } else {
+           setUsers([]);
+        }
 
         // 2. Fetch My Follows (if logged in)
         if (user?.email) {

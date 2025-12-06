@@ -25,8 +25,8 @@ const Navbar: React.FC = () => {
 
   // Nav Links
   const navLinks = [
-    { name: t.nav.ai, path: '/ai' },
     { name: t.nav.clients, path: '/clients' },
+    { name: t.nav.ai, path: '/ai' },
     { name: t.nav.free, path: '/free' },
     { name: t.nav.community, path: '/community' },
   ];

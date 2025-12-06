@@ -79,10 +79,11 @@ export interface DbMiniProgram {
   }[];
 }
 
-export interface DbHomepageSlider {
+export interface DbKmSlider {
   id: number;
-  title?: string;
   image_url: string;
+  title?: string;
+  link_url?: string;
   display_order: number;
   is_active: boolean;
   created_at: string;
@@ -119,13 +120,12 @@ export interface DbClient {
   id: number;
   client_name: string;
   tiktok_url: string;
-  category: 'Education' | 'Comedy' | 'Technology' | 'Health' | 'Other';
-  project_manager_id: number;
+  video_url?: string; // New field
+  image_url?: string; // New field
+  category: string;
   is_active: boolean;
   display_order: number;
   created_at: string;
-  // Joined Data
-  trainers?: DbTrainer;
 }
 
 export interface ProgramDetails {

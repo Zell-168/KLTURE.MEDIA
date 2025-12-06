@@ -1,223 +1,142 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useLang } from '../App';
 import Section from '../components/ui/Section';
 import { supabase } from '../lib/supabase';
 import { DbClient } from '../types';
-import { Loader2, Briefcase, AlertCircle } from 'lucide-react';
-
-const CATEGORIES = ['All', 'Education', 'Comedy', 'Technology', 'Health', 'Other'];
+import { Loader2, Briefcase, ExternalLink, Play, Filter } from 'lucide-react';
+import VideoPlayer from '../components/ui/VideoPlayer';
 
 const OurClients: React.FC = () => {
+  const { t } = useLang();
   const [clients, setClients] = useState<DbClient[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Load TikTok Embed Script
-    const script = document.createElement('script');
-    script.src = 'https://www.tiktok.com/embed.js';
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      // Clean up script if needed, though mostly harmless to leave
-      try { document.body.removeChild(script); } catch (e) {}
-    };
-  }, []);
+  const [activeCategory, setActiveCategory] = useState<string>('All');
 
   useEffect(() => {
     const fetchClients = async () => {
       setLoading(true);
-      setErrorMsg(null);
       try {
-        // 1. Fetch Clients
-        const { data: clientsData, error: clientsError } = await supabase
+        const { data, error } = await supabase
           .from('km_clients')
           .select('*')
           .eq('is_active', true)
+          .order('category', { ascending: true })
           .order('display_order', { ascending: true });
 
-        if (clientsError) throw clientsError;
-        
-        if (!clientsData || clientsData.length === 0) {
-            setClients([]);
-            setLoading(false);
-            return;
-        }
-
-        // 2. Fetch Trainers manually to avoid Foreign Key constraint dependency issues if joins fail
-        // Filter out null/undefined IDs
-        const trainerIds = [...new Set(clientsData.map(c => c.project_manager_id).filter(Boolean))];
-        
-        let trainersMap: Record<number, any> = {};
-        
-        if (trainerIds.length > 0) {
-            const { data: trainersData } = await supabase
-                .from('trainers')
-                .select('id, name, image_url, role')
-                .in('id', trainerIds);
-            
-            if (trainersData) {
-                trainersData.forEach(t => {
-                    trainersMap[t.id] = t;
-                });
-            }
-        }
-
-        // 3. Merge Data
-        const joinedClients = clientsData.map(client => ({
-            ...client,
-            trainers: trainersMap[client.project_manager_id] || null
-        }));
-
-        setClients(joinedClients);
-      } catch (err: any) {
+        if (error) throw error;
+        setClients(data || []);
+      } catch (err) {
         console.error('Error fetching clients:', err);
-        
-        // Robust Error Message Extraction
-        let message = 'An unexpected error occurred.';
-        if (err?.message) {
-            message = err.message;
-        } else if (typeof err === 'string') {
-            message = err;
-        } else {
-             // Try to stringify, but safeguard against circular refs or empty objects
-             try {
-                const str = JSON.stringify(err);
-                if (str !== '{}') message = str;
-             } catch (e) {
-                message = 'Unknown error object.';
-             }
-        }
-
-        // Translate specific DB errors to user-friendly messages
-        if (message.includes('relation "public.km_clients" does not exist')) {
-            message = 'Database setup required: The "km_clients" table is missing.';
-        }
-
-        setErrorMsg(message);
       } finally {
         setLoading(false);
       }
     };
-
     fetchClients();
   }, []);
 
-  const filteredClients = selectedCategory === 'All' 
+  // Extract Categories
+  const categories = ['All', ...Array.from(new Set(clients.map(c => c.category).filter(Boolean)))];
+
+  // Filter Clients
+  const filteredClients = activeCategory === 'All' 
     ? clients 
-    : clients.filter(c => c.category === selectedCategory);
+    : clients.filter(c => c.category === activeCategory);
 
   return (
     <div className="min-h-screen">
-      <Section className="text-center pb-8">
-        <div className="w-16 h-16 bg-red-900/20 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6 border border-red-500/30">
-          <Briefcase size={32} />
-        </div>
-        <h1 className="text-3xl md:text-5xl font-black mb-4 text-white drop-shadow-md">Our Clients</h1>
+      <Section className="pb-8 text-center">
+        <h1 className="text-3xl md:text-5xl font-black mb-4 flex items-center justify-center gap-3 text-white drop-shadow-md">
+           <Briefcase size={40} className="text-red-600" />
+           {t.nav.clients}
+        </h1>
         <p className="text-zinc-400 max-w-2xl mx-auto text-lg mb-8">
-          Showcasing the influential personal brands we've built across various industries.
+           Showcasing the personal brands we've helped build and grow on TikTok.
         </p>
 
-        {/* Category Filters */}
-        <div className="flex flex-wrap justify-center gap-3 mb-12">
-          {CATEGORIES.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-6 py-2 rounded-full font-bold transition-all ${
-                selectedCategory === cat 
-                  ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.5)]' 
-                  : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white border border-white/5'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
+        {/* Category Filter */}
+        {!loading && categories.length > 1 && (
+            <div className="flex flex-wrap justify-center gap-3 animate-fade-in">
+                {categories.map(cat => (
+                    <button
+                        key={cat}
+                        onClick={() => setActiveCategory(cat)}
+                        className={`px-5 py-2.5 rounded-full text-sm font-bold border transition-all duration-300 ${
+                            activeCategory === cat 
+                            ? 'bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.3)] scale-105' 
+                            : 'bg-white/5 text-zinc-400 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/30'
+                        }`}
+                    >
+                        {cat}
+                    </button>
+                ))}
+            </div>
+        )}
+      </Section>
 
+      <Section className="pt-0">
         {loading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="animate-spin text-zinc-500" size={40} />
-          </div>
-        ) : errorMsg ? (
-            <div className="max-w-xl mx-auto p-4 bg-red-900/20 border border-red-500/30 rounded-xl flex items-center gap-3 text-red-200 text-left">
-                <AlertCircle className="shrink-0" />
-                <div>
-                    <p className="font-bold">Unable to load clients</p>
-                    <p className="text-xs opacity-70 mt-1">{errorMsg}</p>
-                </div>
+            <div className="flex justify-center py-20">
+                <Loader2 className="animate-spin text-zinc-500" size={40} />
             </div>
         ) : filteredClients.length === 0 ? (
-            <div className="text-center py-12">
-                <p className="text-zinc-500 italic text-lg">No clients found in this category yet.</p>
-                <p className="text-zinc-600 text-sm mt-2">Check back soon for updates!</p>
+            <div className="text-center py-20 text-zinc-500 bg-white/5 rounded-3xl border border-white/5">
+                <div className="flex justify-center mb-4 opacity-50"><Filter size={40} /></div>
+                <p className="text-lg">No clients found in this category.</p>
+                <button 
+                    onClick={() => setActiveCategory('All')}
+                    className="mt-4 text-red-500 font-bold hover:underline"
+                >
+                    Clear Filter
+                </button>
             </div>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 justify-center">
-            {filteredClients.map((client) => {
-              // Extract Video ID safely
-              const videoId = client.tiktok_url?.split('/video/')[1]?.split('?')[0];
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in">
+                {filteredClients.map(client => (
+                    <div key={client.id} className="glass-panel rounded-2xl overflow-hidden flex flex-col group hover:-translate-y-2 transition-all duration-300 hover:shadow-[0_10px_30px_-10px_rgba(220,38,38,0.2)]">
+                        {/* Vertical Video Container (9:16 Aspect Ratio) */}
+                        <div className="relative w-full pt-[177.77%] bg-black">
+                            <div className="absolute inset-0">
+                                {client.video_url ? (
+                                   // Using VideoPlayer but forcing height to fill container
+                                   <div className="w-full h-full [&_iframe]:w-full [&_iframe]:h-full [&_div]:h-full">
+                                       <VideoPlayer url={client.video_url} className="w-full h-full !pt-0 !rounded-none" />
+                                   </div>
+                                ) : (
+                                    // Fallback Image
+                                    <img 
+                                        src={client.image_url || 'https://via.placeholder.com/450x800?text=No+Preview'} 
+                                        alt={client.client_name}
+                                        className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity"
+                                    />
+                                )}
+                            </div>
+                            
+                            {/* Overlay Gradient */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90 pointer-events-none"></div>
 
-              return (
-              <div key={client.id} className="flex flex-col items-center">
-                
-                {/* iPhone 17 Frame */}
-                <div className="relative w-[300px] h-[600px] bg-black rounded-[45px] border-[12px] border-[#1a1a1a] shadow-2xl overflow-hidden mb-6 ring-1 ring-zinc-800">
-                  {/* Dynamic Island */}
-                  <div className="absolute top-3 left-1/2 -translate-x-1/2 w-28 h-8 bg-black z-20 rounded-full flex items-center justify-center">
-                    <div className="w-16 h-4 bg-[#0a0a0a] rounded-full"></div>
-                  </div>
-                  
-                  {/* TikTok Embed Container */}
-                  <div className="w-full h-full overflow-y-auto bg-black scrollbar-hide">
-                    {videoId ? (
-                        <blockquote 
-                            className="tiktok-embed" 
-                            cite={client.tiktok_url} 
-                            data-video-id={videoId} 
-                            style={{maxWidth: '100%', minWidth: '100%', margin: 0}} 
-                        > 
-                            <section> 
-                                <a target="_blank" href={client.tiktok_url} rel="noreferrer">
-                                    {client.client_name}
-                                </a> 
-                            </section> 
-                        </blockquote>
-                    ) : (
-                        <div className="h-full flex items-center justify-center text-zinc-600 px-4 text-center">
-                            Invalid TikTok URL
-                        </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Client Info */}
-                <div className="text-center w-full max-w-[300px]">
-                    <h3 className="text-xl font-bold text-white mb-1">{client.client_name}</h3>
-                    <span className="inline-block px-3 py-1 bg-white/5 rounded-full text-xs font-bold text-zinc-400 mb-4 border border-white/5">
-                        {client.category}
-                    </span>
-                    
-                    {/* Project Manager */}
-                    {client.trainers && (
-                        <div className="glass-panel p-3 rounded-xl flex items-center gap-3 text-left">
-                            <img 
-                                src={client.trainers.image_url} 
-                                alt={client.trainers.name} 
-                                className="w-10 h-10 rounded-full object-cover border border-white/10"
-                            />
-                            <div>
-                                <p className="text-xs text-zinc-500 font-bold uppercase">Managed By</p>
-                                <p className="text-sm font-bold text-white">{client.trainers.name}</p>
+                            {/* Client Info Overlay */}
+                            <div className="absolute bottom-0 left-0 w-full p-6 z-10 pointer-events-none">
+                                {client.category && (
+                                    <span className="inline-block px-2 py-1 bg-white/10 backdrop-blur-md border border-white/10 rounded text-xs font-bold text-zinc-300 mb-2">
+                                        {client.category}
+                                    </span>
+                                )}
+                                <h3 className="text-xl font-bold text-white mb-3 drop-shadow-md">{client.client_name}</h3>
+                                
+                                <a 
+                                    href={client.tiktok_url} 
+                                    target="_blank" 
+                                    rel="noreferrer"
+                                    className="flex items-center justify-center gap-2 w-full py-3 bg-red-600/90 hover:bg-red-600 text-white font-bold rounded-xl transition-all shadow-lg backdrop-blur-sm pointer-events-auto"
+                                >
+                                    <Play size={16} fill="currentColor" /> Visit TikTok
+                                </a>
                             </div>
                         </div>
-                    )}
-                </div>
-              </div>
-            )})}
-          </div>
+                    </div>
+                ))}
+            </div>
         )}
       </Section>
     </div>

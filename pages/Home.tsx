@@ -6,13 +6,13 @@ import { Link } from 'react-router-dom';
 import { CheckCircle2, ArrowRight, Wallet, TrendingUp, Send, MessageSquareQuote } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import BannerCarousel from '../components/ui/BannerCarousel';
-import { DbHomepageSlider, DbClientFeedback } from '../types';
+import { DbKmSlider, DbClientFeedback } from '../types';
 
 const Home: React.FC = () => {
   const { t } = useLang();
   const { user } = useAuth();
   const [creditBalance, setCreditBalance] = useState<number>(0);
-  const [sliderImages, setSliderImages] = useState<DbHomepageSlider[]>([]);
+  const [sliderImages, setSliderImages] = useState<DbKmSlider[]>([]);
   const [feedbackImages, setFeedbackImages] = useState<DbClientFeedback[]>([]);
 
   // Fetch Credits for CTA
@@ -35,14 +35,14 @@ const Home: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
         try {
-            // Main Slider
+            // Main Slider (Updated to km_slider)
             const sliderReq = supabase
-                .from('homepage_slider')
+                .from('km_slider')
                 .select('*')
                 .eq('is_active', true)
                 .order('display_order', { ascending: true });
             
-            // Feedback Slider - Updated Table Name
+            // Feedback Slider
             const feedbackReq = supabase
                 .from('km_client_feedbacks')
                 .select('*')

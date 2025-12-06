@@ -6,9 +6,9 @@ import { TRANSLATIONS } from './constants';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
-// Removed imports for MiniProgram, OtherPrograms, OnlineCourses
 import FreeCourses from './pages/FreeCourses';
 import Community from './pages/Community';
+import OurClients from './pages/OurClients';
 import About from './pages/About';
 import FAQ from './pages/FAQ';
 import Contact from './pages/Contact';
@@ -16,7 +16,6 @@ import SignIn from './pages/SignIn';
 import Profile from './pages/Profile';
 import Trainers from './pages/Trainers';
 import LearningClassroom from './pages/LearningClassroom';
-import OurClients from './pages/OurClients';
 // AI Tools
 import AiHub from './pages/ai/AiHub';
 import AiMarketing from './pages/ai/AiMarketing';
@@ -113,6 +112,7 @@ const App: React.FC = () => {
             <main className="flex-grow pt-16 relative z-10">
               <Routes>
                 <Route path="/" element={<Home />} />
+                <Route path="/clients" element={<OurClients />} />
                 <Route path="/free" element={<FreeCourses />} />
                 <Route path="/community" element={<Community />} />
                 <Route path="/trainers" element={<Trainers />} />
@@ -122,7 +122,6 @@ const App: React.FC = () => {
                 <Route path="/signin" element={<SignIn />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/learning/:courseId" element={<LearningClassroom />} />
-                <Route path="/clients" element={<OurClients />} />
                 
                 {/* AI Tools Routes */}
                 <Route path="/ai" element={<AiHub />} />

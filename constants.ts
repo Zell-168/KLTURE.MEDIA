@@ -169,7 +169,7 @@ export const TRANSLATIONS: Record<'en' | 'kh', TranslationData> = {
       free: "វគ្គសិក្សាហ្វ្រី",
       community: "សហគមន៍",
       ai: "AI Tools",
-      clients: "អតិថិជន",
+      clients: "អតិថិជនរបស់យើង",
       about: "អំពីយើង",
       faq: "សំណួរ & គោលការណ៍",
       contact: "ទំនាក់ទំនង",
