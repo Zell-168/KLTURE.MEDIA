@@ -97,7 +97,7 @@ const AiFightThai: React.FC = () => {
     const handleSuccess = async (tweets: string[], provider: string) => {
         setResults(tweets);
         if (user?.email) {
-            await supabase.from('km_ai_histories').insert([{
+            await supabase.from('ai_history').insert([{
                 user_email: user.email,
                 tool_name: 'FIGHT_THAI',
                 input_data: formData,
@@ -171,7 +171,7 @@ const AiFightThai: React.FC = () => {
 
         <div className="text-center mb-10">
             <h1 className="text-3xl md:text-5xl font-black text-white mb-2 bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
-                Fight Thai
+                Fight Thai by KLTURE.MEDIA
             </h1>
             <p className="text-zinc-400 text-lg">Generate fresh tweet ideas from your old posts using Gemini.</p>
         </div>

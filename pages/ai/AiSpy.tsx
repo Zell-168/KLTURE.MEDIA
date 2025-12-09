@@ -3,13 +3,15 @@ import React, { useState } from 'react';
 import { useAuth } from '../../App';
 import Section from '../../components/ui/Section';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, Search, ArrowLeft, Target, Eye, DollarSign } from 'lucide-react';
+import { Loader2, Search, ArrowLeft, Target, Eye, DollarSign, FileText } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { GoogleGenAI } from "@google/genai";
 
 const AiSpy: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [url, setUrl] = useState('');
+  const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any | null>(null);
 
@@ -17,66 +19,86 @@ const AiSpy: React.FC = () => {
      if (!user) navigate('/signin');
   }, [user, navigate]);
 
-  const handleAnalyze = () => {
-    if (!url.includes('facebook.com')) {
-        alert('Please enter a valid Facebook URL');
+  const handleAnalyze = async () => {
+    if (!content.trim()) {
+        alert('Please paste the ad copy or content text to analyze.');
         return;
     }
 
     setLoading(true);
     setResult(null);
 
-    // Mock DeepSeek API Call
-    setTimeout(async () => {
-        const mockResponse = {
-            url: url,
-            options: [
-                {
-                    label: "Option A (Cold Audience)",
-                    spend: "$50 - $200",
-                    days: "3 - 7 days",
-                    objective: "Engagement / Awareness",
-                    audience: "Age 25-40, Broad Interest, Cambodia",
-                    placements: "Feeds, Stories",
-                    funnel_stage: "Top of Funnel (Awareness)",
-                    explanation: "This post seems designed to grab attention quickly. The caption is short and the visual is striking."
-                },
-                {
-                    label: "Option B (Warm Audience)",
-                    spend: "$100 - $400",
-                    days: "5 - 10 days",
-                    objective: "Messages / Leads",
-                    audience: "Age 30-45, Specific Interests (e.g. Real Estate/Tech), Phnom Penh",
-                    placements: "Feeds, Messenger",
-                    funnel_stage: "Middle of Funnel (Consideration)",
-                    explanation: "The content includes detailed information and a strong CTA, suggesting a push for conversation."
-                },
-                {
-                    label: "Option C (Retargeting)",
-                    spend: "$200 - $800",
-                    days: "7 - 14 days",
-                    objective: "Conversions / Sales",
-                    audience: "Previous Engagers, Website Visitors",
-                    placements: "Feeds, Stories, Reels",
-                    funnel_stage: "Bottom of Funnel (Conversion)",
-                    explanation: "High urgency language suggests retargeting people who already know the brand."
-                }
-            ]
-        };
+    try {
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const prompt = `Analyze this Facebook ad content.
+        URL Context: ${url || 'N/A'}
+        Ad Copy / Content: "${content}"
 
-        setResult(mockResponse);
-        setLoading(false);
+        Act as a senior media buyer. Reverse engineer the strategy.
+        Return a JSON object with this EXACT structure:
+        {
+          "url": "${url || 'Analyzed Content'}",
+          "options": [
+            {
+              "label": "Option A (Cold Audience)",
+              "spend": "Estimated range (e.g. $50-100)",
+              "days": "Duration (e.g. 5-7 days)",
+              "objective": "Campaign Objective",
+              "audience": "Targeting details",
+              "placements": "Recommended placements",
+              "funnel_stage": "Top of Funnel",
+              "explanation": "Why this works for cold traffic..."
+            },
+            {
+              "label": "Option B (Warm Audience)",
+              "spend": "...",
+              "days": "...",
+              "objective": "...",
+              "audience": "...",
+              "placements": "...",
+              "funnel_stage": "Middle of Funnel",
+              "explanation": "..."
+            },
+            {
+              "label": "Option C (Retargeting)",
+              "spend": "...",
+              "days": "...",
+              "objective": "...",
+              "audience": "...",
+              "placements": "...",
+              "funnel_stage": "Bottom of Funnel",
+              "explanation": "..."
+            }
+          ]
+        }`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                responseMimeType: 'application/json'
+            }
+        });
+
+        const generatedData = JSON.parse(response.text || "{}");
+        setResult(generatedData);
 
         // Save History
         if (user?.email) {
             await supabase.from('km_ai_histories').insert([{
                 user_email: user.email,
                 tool_name: 'SPY',
-                input_data: { url },
-                result_data: mockResponse
+                input_data: { url, content },
+                result_data: generatedData
             }]);
         }
-    }, 2500);
+
+    } catch (err) {
+        console.error("Gemini Error:", err);
+        alert("Analysis failed. Please try again.");
+    } finally {
+        setLoading(false);
+    }
   };
 
   return (
@@ -95,35 +117,52 @@ const AiSpy: React.FC = () => {
                     <Search className="text-red-500" size={32} />
                     AI Facebook Detective
                 </h1>
-                <p className="text-zinc-400">Reverse-engineer any Facebook post to uncover ad strategy.</p>
+                <p className="text-zinc-400">Reverse-engineer any ad strategy using Gemini AI.</p>
             </div>
 
-            <div className="flex flex-col md:flex-row gap-4 mb-8">
-                <input 
-                    type="url" 
-                    placeholder="Paste Facebook Post URL here..."
-                    className="flex-grow bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-red-500 transition-colors"
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                />
+            <div className="flex flex-col gap-4 mb-8">
+                {/* Inputs */}
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-bold text-zinc-400 mb-2">1. Ad URL (Optional)</label>
+                        <input 
+                            type="url" 
+                            placeholder="Paste Facebook Post URL..."
+                            className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-red-500 transition-colors"
+                            value={url}
+                            onChange={(e) => setUrl(e.target.value)}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-bold text-zinc-400 mb-2">2. Ad Copy / Content (Required)</label>
+                        <textarea 
+                            rows={4}
+                            placeholder="Paste the caption or describe the video/image content here so the AI can analyze it..."
+                            className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-red-500 transition-colors"
+                            value={content}
+                            onChange={(e) => setContent(e.target.value)}
+                        />
+                    </div>
+                </div>
+
                 <button 
                     onClick={handleAnalyze}
                     disabled={loading}
-                    className="bg-red-600 hover:bg-red-700 text-white font-bold px-8 py-4 rounded-xl transition-all shadow-lg shadow-red-900/20 flex items-center justify-center gap-2 whitespace-nowrap"
+                    className="w-full bg-red-600 hover:bg-red-700 text-white font-bold px-8 py-4 rounded-xl transition-all shadow-lg shadow-red-900/20 flex items-center justify-center gap-2 mt-2"
                 >
                     {loading ? <Loader2 className="animate-spin" /> : <Eye size={20} />}
-                    {loading ? 'Analyzing...' : 'Analyze Post'}
+                    {loading ? 'Analyzing Strategy...' : 'Analyze Post'}
                 </button>
             </div>
 
             {loading && (
                 <div className="text-center py-12">
                     <Loader2 className="animate-spin text-red-500 mx-auto mb-4" size={40} />
-                    <p className="text-zinc-400 animate-pulse">AI is deconstructing the ad strategy...</p>
+                    <p className="text-zinc-400 animate-pulse">Gemini is deconstructing the ad strategy...</p>
                 </div>
             )}
 
-            {result && (
+            {result && result.options && (
                 <div className="mt-8 animate-fade-in">
                     <div className="mb-8 p-4 bg-white/5 rounded-xl border border-white/10 text-zinc-400 text-sm break-all">
                         Analysis for: <span className="text-white">{result.url}</span>

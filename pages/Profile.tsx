@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useLang, useAuth } from '../App';
 import Section from '../components/ui/Section';
 import { useNavigate } from 'react-router-dom';
-import { Phone, Mail, LogOut, CheckCircle, Calendar, Loader2, BookOpen, Video, Star, Zap, Search, Wallet, TrendingUp, PlayCircle, Send, Bot, FileText, ChevronDown, ChevronUp, Rocket } from 'lucide-react';
+import { Phone, Mail, LogOut, CheckCircle, Calendar, Loader2, BookOpen, Video, Star, Zap, Search, Wallet, TrendingUp, PlayCircle, Send, Bot, FileText, ChevronDown, ChevronUp, Rocket, PenTool } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { CreditTransaction, DbAiHistory } from '../types';
 import { useCreditBalance } from '../lib/hooks';
@@ -67,7 +67,7 @@ const Profile: React.FC = () => {
 
         // 3. Fetch AI History
         const { data: aiData } = await supabase
-          .from('km_ai_histories')
+          .from('ai_history')
           .select('*')
           .eq('user_email', user.email)
           .order('created_at', { ascending: false });
@@ -424,10 +424,15 @@ const Profile: React.FC = () => {
                                             onClick={() => toggleHistory(item.id)}
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div className={`p-2 rounded-lg bg-white/5 ${item.tool_name === 'MARKETING' ? 'text-yellow-500' : item.tool_name === 'BOOSTING' ? 'text-blue-500' : 'text-red-500'}`}>
+                                                <div className={`p-2 rounded-lg bg-white/5 ${
+                                                    item.tool_name === 'MARKETING' ? 'text-yellow-500' : 
+                                                    item.tool_name === 'BOOSTING' ? 'text-blue-500' : 
+                                                    item.tool_name === 'SPY' ? 'text-green-500' : 'text-blue-400'
+                                                }`}>
                                                     {item.tool_name === 'MARKETING' && <Zap size={16} />}
                                                     {item.tool_name === 'BOOSTING' && <Rocket size={16} />}
                                                     {item.tool_name === 'SPY' && <Search size={16} />}
+                                                    {item.tool_name === 'FIGHT_THAI' && <PenTool size={16} />}
                                                 </div>
                                                 <div>
                                                     <p className="font-bold text-white text-sm">{item.tool_name} GENERATION</p>
