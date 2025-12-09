@@ -128,7 +128,7 @@ const AiFightThai: React.FC = () => {
 
         console.log("Attempting to connect to Gemini API...");
 
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const ai = new GoogleGenAI({ apiKey: 'AIzaSyAeLFlk_sSn0xrazdc0z4rs2wadEwSqqk8' });
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: userPrompt,
