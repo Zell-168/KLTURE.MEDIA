@@ -9,7 +9,6 @@ export const TRANSLATIONS: Record<'en' | 'kh', TranslationData> = {
       other: "Other Programs", 
       online: "Online Courses",
       free: "Free Courses",
-      community: "Community",
       ai: "AI Tools",
       clients: "Our Clients",
       about: "About",
@@ -18,7 +17,8 @@ export const TRANSLATIONS: Record<'en' | 'kh', TranslationData> = {
       register: "Work With Us",
       signIn: "Sign In",
       signOut: "Sign Out",
-      profile: "My Profile"
+      profile: "My Profile",
+      signUp: "Sign Up"
     },
     home: {
       heroTitle: "KLTURE.MEDIA – Cambodia’s Leading TikTok Personal Branding Agency",
@@ -95,13 +95,6 @@ export const TRANSLATIONS: Record<'en' | 'kh', TranslationData> = {
       watchBtn: "Watch Now",
       loginToEnroll: "Log in to enroll"
     },
-    community: {
-      title: "Our Community",
-      subtitle: "Connect with other marketers, business owners, and creators in the KLTURE network.",
-      follow: "Follow",
-      unfollow: "Unfollow",
-      members: "Member Since"
-    },
     trainers: {
       title: "Our Team",
       subtitle: "Meet the experts building the future of personal branding in Cambodia.",
@@ -167,7 +160,6 @@ export const TRANSLATIONS: Record<'en' | 'kh', TranslationData> = {
       other: "កម្មវិធីផ្សេងៗ",
       online: "វគ្គសិក្សាតាមអនឡាញ",
       free: "វគ្គសិក្សាហ្វ្រី",
-      community: "សហគមន៍",
       ai: "AI Tools",
       clients: "អតិថិជនរបស់យើង",
       about: "អំពីយើង",
@@ -176,7 +168,8 @@ export const TRANSLATIONS: Record<'en' | 'kh', TranslationData> = {
       register: "ធ្វើការជាមួយយើង",
       signIn: "ចូលប្រើប្រាស់",
       signOut: "ចាកចេញ",
-      profile: "គណនីរបស់ខ្ញុំ"
+      profile: "គណនីរបស់ខ្ញុំ",
+      signUp: "ចុះឈ្មោះ"
     },
     home: {
       heroTitle: "KLTURE.MEDIA – ទីភ្នាក់ងារ Personal Branding លើ TikTok ឈានមុខគេនៅកម្ពុជា",
@@ -252,13 +245,6 @@ export const TRANSLATIONS: Record<'en' | 'kh', TranslationData> = {
       enrollBtn: "ចុះឈ្មោះចូលរៀនហ្វ្រី",
       watchBtn: "មើលវីដេអូ",
       loginToEnroll: "ចូលប្រើប្រាស់ដើម្បីរៀន"
-    },
-    community: {
-      title: "សហគមន៍របស់យើង",
-      subtitle: "ភ្ជាប់ទំនាក់ទំនងជាមួយអ្នកទីផ្សារ ម្ចាស់អាជីវកម្ម និងអ្នកបង្កើតមាតិកាផ្សេងទៀតនៅក្នុងបណ្តាញ KLTURE ។",
-      follow: "តាមដាន",
-      unfollow: "ឈប់តាមដាន",
-      members: "សមាជិកតាំងពី"
     },
     trainers: {
       title: "ក្រុមការងាររបស់យើង",

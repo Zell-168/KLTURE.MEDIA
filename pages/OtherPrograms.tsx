@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { useLang } from '../App';
+import { useLang, useAuth } from '../App';
 import Section from '../components/ui/Section';
 import { useNavigate } from 'react-router-dom';
 import { Star, Zap, Loader2 } from 'lucide-react';
@@ -12,6 +12,7 @@ import BannerCarousel from '../components/ui/BannerCarousel';
 
 const OtherPrograms: React.FC = () => {
   const { t } = useLang();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [programs, setPrograms] = useState<DbOtherProgram[]>([]);
   const [allTrainers, setAllTrainers] = useState<DbTrainer[]>([]);
@@ -63,7 +64,11 @@ const OtherPrograms: React.FC = () => {
   }, []);
 
   const handleInterest = (prog: string) => {
-    navigate('/contact', { state: { selectedProgram: prog } });
+    if (user) {
+        navigate('/contact', { state: { selectedProgram: prog } });
+    } else {
+        navigate('/signup', { state: { returnTo: '/contact', selectedProgram: prog } });
+    }
   };
 
   return (

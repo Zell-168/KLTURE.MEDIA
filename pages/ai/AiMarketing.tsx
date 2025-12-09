@@ -35,7 +35,7 @@ const AiMarketing: React.FC = () => {
     setResult(null);
 
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || 'AIzaSyAeLFlk_sSn0xrazdc0z4rs2wadEwSqqk8' });
         const prompt = `Generate a comprehensive marketing campaign strategy for:
         Business Name: ${formData.businessName}
         Product/Service: ${formData.productService}
@@ -61,9 +61,9 @@ const AiMarketing: React.FC = () => {
         const generatedText = response.text || "No content generated.";
         setResult(generatedText);
 
-        // Save to History
+        // Save to History (Unified Table)
         if (user?.email) {
-            await supabase.from('km_ai_histories').insert([{
+            await supabase.from('ai_history').insert([{
                 user_email: user.email,
                 tool_name: 'MARKETING',
                 input_data: formData,

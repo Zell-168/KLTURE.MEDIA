@@ -29,7 +29,7 @@ const AiSpy: React.FC = () => {
     setResult(null);
 
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || 'AIzaSyAeLFlk_sSn0xrazdc0z4rs2wadEwSqqk8' });
         const prompt = `Analyze this Facebook ad content.
         URL Context: ${url || 'N/A'}
         Ad Copy / Content: "${content}"
@@ -83,9 +83,9 @@ const AiSpy: React.FC = () => {
         const generatedData = JSON.parse(response.text || "{}");
         setResult(generatedData);
 
-        // Save History
+        // Save History (Unified Table)
         if (user?.email) {
-            await supabase.from('km_ai_histories').insert([{
+            await supabase.from('ai_history').insert([{
                 user_email: user.email,
                 tool_name: 'SPY',
                 input_data: { url, content },

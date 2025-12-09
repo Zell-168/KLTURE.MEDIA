@@ -179,7 +179,6 @@ export interface TranslationData {
     other: string;
     online: string;
     free: string;
-    community: string;
     ai: string;
     clients: string;
     about: string;
@@ -189,6 +188,7 @@ export interface TranslationData {
     signIn: string;
     signOut: string;
     profile: string;
+    signUp: string;
   };
   home: {
     heroTitle: string;
@@ -242,13 +242,6 @@ export interface TranslationData {
     enrollBtn: string;
     watchBtn: string;
     loginToEnroll: string;
-  };
-  community: {
-    title: string;
-    subtitle: string;
-    follow: string;
-    unfollow: string;
-    members: string;
   };
   trainers: {
     title: string;

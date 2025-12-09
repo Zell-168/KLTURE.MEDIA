@@ -205,6 +205,12 @@ const Profile: React.FC = () => {
     }
   };
 
+  const getToolDisplayName = (name: string | undefined | null) => {
+    if (!name) return 'Unknown Tool';
+    if (name === 'FIGHT_THAI') return 'Fight Thai';
+    return String(name).replace(/_/g, ' ');
+  };
+
   if (!user) return null;
 
   return (
@@ -436,7 +442,7 @@ const Profile: React.FC = () => {
                                                 </div>
                                                 <div>
                                                     <p className="font-bold text-white text-sm uppercase tracking-wide">
-                                                        {item.tool_name === 'FIGHT_THAI' ? 'Fight Thai' : item.tool_name.replace('_', ' ')}
+                                                        {getToolDisplayName(item.tool_name)}
                                                     </p>
                                                     <p className="text-xs text-zinc-500">{new Date(item.created_at).toLocaleString()}</p>
                                                 </div>
@@ -465,7 +471,7 @@ const Profile: React.FC = () => {
                                                                 ))}
                                                             </div>
                                                         ) : item.tool_name === 'MARKETING' ? (
-                                                            <div className="whitespace-pre-wrap">{item.result_data.text}</div>
+                                                            <div className="whitespace-pre-wrap">{item.result_data?.text || "No text generated"}</div>
                                                         ) : (
                                                             <pre className="text-xs whitespace-pre-wrap">{JSON.stringify(item.result_data, null, 2)}</pre>
                                                         )}

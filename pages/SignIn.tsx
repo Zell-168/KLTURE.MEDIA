@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useLang, useAuth } from '../App';
 import Section from '../components/ui/Section';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Loader2, AlertCircle, LogIn } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -10,6 +10,11 @@ const SignIn: React.FC = () => {
   const { t } = useLang();
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const fromProgram = location.state?.selectedProgram;
+  const returnTo = location.state?.returnTo;
+
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -27,15 +32,12 @@ const SignIn: React.FC = () => {
     setErrorMsg(null);
 
     try {
-      // Check Supabase by EMAIL
-      // We use .limit(1).maybeSingle() because if a user enrolled in multiple courses,
-      // they will have multiple rows. We just need one row to confirm auth and get user details.
       const { data, error } = await supabase
         .from('registrations')
         .select('*')
         .eq('email', formData.email.trim())
         .eq('password', formData.password.trim())
-        .order('created_at', { ascending: false }) // Get latest info
+        .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
@@ -46,7 +48,13 @@ const SignIn: React.FC = () => {
         setErrorMsg('Invalid email or password.');
       } else {
         login(data);
-        navigate('/profile');
+        
+        // Redirect logic
+        if (returnTo && fromProgram) {
+            navigate(returnTo, { state: { selectedProgram: fromProgram } });
+        } else {
+            navigate('/profile');
+        }
       }
     } catch (err: any) {
       console.error('Login error:', err);
@@ -65,7 +73,11 @@ const SignIn: React.FC = () => {
               <LogIn size={24} />
             </div>
             <h1 className="text-2xl font-bold text-white">{t.nav.signIn}</h1>
-            <p className="text-zinc-400 mt-2">Access your KLTURE.MEDIA account</p>
+            {fromProgram ? (
+                 <p className="text-zinc-400 mt-2 text-sm">Sign in to continue to <span className="text-white font-bold">{fromProgram}</span></p>
+            ) : (
+                 <p className="text-zinc-400 mt-2">Access your KLTURE.MEDIA account</p>
+            )}
           </div>
 
           {errorMsg && (
@@ -118,8 +130,12 @@ const SignIn: React.FC = () => {
 
           <div className="mt-6 text-center text-sm text-zinc-500">
             Don't have an account?{' '}
-            <Link to="/contact" className="text-red-500 font-bold hover:underline">
-              Register Now
+            <Link 
+                to="/signup" 
+                state={{ returnTo, selectedProgram: fromProgram }}
+                className="text-red-500 font-bold hover:underline"
+            >
+              {t.nav.signUp} Now
             </Link>
           </div>
         </div>

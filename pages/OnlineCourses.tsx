@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { useLang } from '../App';
+import { useLang, useAuth } from '../App';
 import Section from '../components/ui/Section';
 import { useNavigate } from 'react-router-dom';
 import { PlayCircle, Loader2, Wallet } from 'lucide-react';
@@ -12,6 +12,7 @@ import BannerCarousel from '../components/ui/BannerCarousel';
 
 const OnlineCourses: React.FC = () => {
   const { t } = useLang();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [courses, setCourses] = useState<DbOnlineCourse[]>([]);
   const [allTrainers, setAllTrainers] = useState<DbTrainer[]>([]);
@@ -60,7 +61,11 @@ const OnlineCourses: React.FC = () => {
   }, []);
 
   const handleEnroll = (courseName: string) => {
-    navigate('/contact', { state: { selectedProgram: `Online: ${courseName}` } });
+    if (user) {
+        navigate('/contact', { state: { selectedProgram: `Online: ${courseName}` } });
+    } else {
+        navigate('/signup', { state: { returnTo: '/contact', selectedProgram: `Online: ${courseName}` } });
+    }
   };
 
   return (

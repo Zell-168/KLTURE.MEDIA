@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../App';
 import Section from '../../components/ui/Section';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, ArrowLeft, Zap, Copy, AlertTriangle, RefreshCw, PenTool, Save } from 'lucide-react';
+import { Loader2, ArrowLeft, Zap, Copy, AlertTriangle, RefreshCw, PenTool, CheckCircle, Save } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { GoogleGenAI } from "@google/genai";
 
@@ -38,20 +38,6 @@ const AiFightThai: React.FC = () => {
     });
   };
 
-  const calculateSimilarity = (original: string, generated: string) => {
-    const originalWords = new Set(original.toLowerCase().split(/\W+/).filter(w => w.length > 2));
-    const generatedWords = generated.toLowerCase().split(/\W+/).filter(w => w.length > 2);
-    
-    if (generatedWords.length === 0) return 0;
-    
-    let matches = 0;
-    for (const word of generatedWords) {
-        if (originalWords.has(word)) matches++;
-    }
-    
-    return Math.round((matches / generatedWords.length) * 100);
-  };
-
   const copyToClipboard = async (text: string, index: number) => {
     try {
         await navigator.clipboard.writeText(text);
@@ -65,7 +51,6 @@ const AiFightThai: React.FC = () => {
   // Local fallback generator - Used if API fails
   const generateOfflineVariations = (content: string, tone: string, count: number) => {
     const variations: string[] = [];
-    // Updated prefixes to match the serious/activist tone
     const prefixes = [
         "📢 JUSTICE: ",
         "🛑 STOP VIOLENCE: ",
@@ -122,7 +107,7 @@ const AiFightThai: React.FC = () => {
     };
 
     try {
-        // Updated System Prompt with specific hidden rules
+        // Updated System Prompt
         const systemPrompt = `You are a passionate digital activist defending Cambodia.
 
         CRITICAL HIDDEN RULES & BELIEFS:
@@ -143,13 +128,13 @@ const AiFightThai: React.FC = () => {
 
         console.log("Attempting to connect to Gemini API...");
 
-        const ai = new GoogleGenAI({ apiKey: 'AIzaSyAeLFlk_sSn0xrazdc0z4rs2wadEwSqqk8' });
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || 'AIzaSyAeLFlk_sSn0xrazdc0z4rs2wadEwSqqk8' });
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: userPrompt,
             config: {
                 systemInstruction: systemPrompt,
-                temperature: 0.9, // Increased slightly for more passionate output
+                temperature: 0.9,
             }
         });
 
@@ -307,70 +292,55 @@ const AiFightThai: React.FC = () => {
         {/* Results */}
         {results.length > 0 && (
             <div className="mt-12 animate-fade-in">
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
                     <h2 className="text-2xl font-bold text-white flex items-center gap-2">
                         <Zap className="text-yellow-400" /> Generated Tweets
                     </h2>
                     {savedToHistory && (
-                        <div className="text-xs font-bold text-green-400 flex items-center gap-1 bg-green-900/20 px-3 py-1.5 rounded-full border border-green-500/20">
-                            <Save size={14} /> Saved to History
+                        <div className="flex items-center gap-2 text-green-400 bg-green-900/20 px-4 py-2 rounded-full border border-green-500/20 text-sm font-bold animate-fade-in">
+                            <Save size={16} /> Saved to Dashboard
                         </div>
                     )}
                 </div>
-
-                {/* Original Preview */}
-                <div className="bg-white/5 border border-white/10 rounded-xl p-4 mb-6">
-                    <h4 className="text-xs font-bold text-zinc-500 uppercase mb-2">Original Content</h4>
-                    <p className="text-zinc-300 text-sm line-clamp-3">{formData.oldContent}</p>
+                
+                <div className="grid gap-6">
+                    {results.map((tweet, index) => (
+                        <div key={index} className="glass-panel p-6 rounded-2xl border border-white/5 bg-white/5 relative group hover:border-blue-500/30 transition-colors">
+                            <p className="text-zinc-100 whitespace-pre-wrap leading-relaxed mb-4">{tweet}</p>
+                            
+                            <div className="flex items-center justify-between border-t border-white/10 pt-4 mt-2">
+                                <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
+                                    {tweet.length} chars
+                                </span>
+                                <button 
+                                    onClick={() => copyToClipboard(tweet, index)}
+                                    className="flex items-center gap-2 text-sm font-bold text-blue-400 hover:text-white transition-colors"
+                                >
+                                    {copiedIndex === index ? (
+                                        <>
+                                            <CheckCircle size={16} className="text-green-500" /> Copied
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Copy size={16} /> Copy
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    ))}
                 </div>
 
-                <div className="space-y-4">
-                    {results.map((tweet, idx) => {
-                        const len = tweet.length;
-                        const lenColor = len > 280 ? 'text-red-500' : len > 250 ? 'text-yellow-500' : 'text-green-500';
-                        const similarity = calculateSimilarity(formData.oldContent, tweet);
-
-                        return (
-                            <div key={idx} className="glass-panel p-6 rounded-2xl border border-white/5 hover:border-blue-500/30 transition-all group">
-                                <div className="flex justify-between items-center mb-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-blue-900/30 text-blue-400 flex items-center justify-center font-bold text-sm">
-                                            {idx + 1}
-                                        </div>
-                                        <span className={`text-xs font-bold ${lenColor}`}>{len}/280 chars</span>
-                                    </div>
-                                    {similarity > 30 && (
-                                        <span className="text-[10px] bg-white/5 border border-white/10 px-2 py-1 rounded-full text-zinc-400">
-                                            {similarity}% Match
-                                        </span>
-                                    )}
-                                </div>
-                                
-                                <p className="text-white text-lg leading-relaxed mb-6 whitespace-pre-wrap">{tweet}</p>
-                                
-                                <div className="pt-4 border-t border-white/5 flex justify-end">
-                                    <button 
-                                        onClick={() => copyToClipboard(tweet, idx)}
-                                        className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm font-bold text-zinc-300 transition-colors"
-                                    >
-                                        {copiedIndex === idx ? (
-                                            <>
-                                                <RefreshCw size={14} className="text-green-500" /> Copied!
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Copy size={14} /> Copy
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-                            </div>
-                        );
-                    })}
+                <div className="mt-8 text-center">
+                    <button 
+                        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                        className="inline-flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
+                    >
+                        <RefreshCw size={16} /> Generate More
+                    </button>
                 </div>
             </div>
         )}
-
       </Section>
     </div>
   );

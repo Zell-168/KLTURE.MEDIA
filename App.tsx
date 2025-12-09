@@ -7,12 +7,12 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
 import FreeCourses from './pages/FreeCourses';
-import Community from './pages/Community';
 import OurClients from './pages/OurClients';
 import About from './pages/About';
 import FAQ from './pages/FAQ';
 import Contact from './pages/Contact';
 import SignIn from './pages/SignIn';
+import SignUp from './pages/SignUp';
 import Profile from './pages/Profile';
 import Trainers from './pages/Trainers';
 import LearningClassroom from './pages/LearningClassroom';
@@ -112,12 +112,12 @@ const App: React.FC = () => {
                 <Route path="/" element={<Home />} />
                 <Route path="/clients" element={<OurClients />} />
                 <Route path="/free" element={<FreeCourses />} />
-                <Route path="/community" element={<Community />} />
                 <Route path="/trainers" element={<Trainers />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/faq" element={<FAQ />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/signin" element={<SignIn />} />
+                <Route path="/signup" element={<SignUp />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/learning/:courseId" element={<LearningClassroom />} />
                 

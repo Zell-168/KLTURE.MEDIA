@@ -37,9 +37,10 @@ const Contact: React.FC = () => {
 
             const prices: Record<string, number> = {};
 
-            const parsePrice = (p: string) => {
+            const parsePrice = (p: any) => {
               if (!p) return 0;
-              const num = parseFloat(p.replace(/[^0-9.]/g, ''));
+              const str = String(p);
+              const num = parseFloat(str.replace(/[^0-9.]/g, ''));
               return isNaN(num) ? 0 : num;
             }
             

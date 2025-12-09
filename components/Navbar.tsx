@@ -28,7 +28,6 @@ const Navbar: React.FC = () => {
     { name: t.nav.clients, path: '/clients' },
     { name: t.nav.ai, path: '/ai' },
     { name: t.nav.free, path: '/free' },
-    { name: t.nav.community, path: '/community' },
   ];
 
   return (
@@ -97,10 +96,10 @@ const Navbar: React.FC = () => {
                   {t.nav.signIn}
                 </Link>
                 <Link
-                  to="/contact"
+                  to="/signup"
                   className="bg-red-600/90 text-white px-5 py-2 rounded-md text-sm font-semibold hover:bg-red-600 transition-all shadow-[0_0_15px_rgba(220,38,38,0.4)] backdrop-blur-sm"
                 >
-                  {t.nav.register}
+                  {t.nav.signUp}
                 </Link>
               </div>
             )}
@@ -190,10 +189,10 @@ const Navbar: React.FC = () => {
                 {t.nav.signIn}
               </button>
               <button
-                onClick={() => handleNav('/contact')}
+                onClick={() => handleNav('/signup')}
                 className="bg-red-600 text-white w-full py-4 rounded-lg text-lg font-bold text-center shadow-lg"
               >
-                {t.nav.register}
+                {t.nav.signUp}
               </button>
             </div>
           )}

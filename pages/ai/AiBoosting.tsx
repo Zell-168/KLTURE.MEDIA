@@ -36,7 +36,7 @@ const AiBoosting: React.FC = () => {
      setResult(null);
      
      try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || 'AIzaSyAeLFlk_sSn0xrazdc0z4rs2wadEwSqqk8' });
         const prompt = `Plan a Facebook boosting strategy.
         Business: ${formData.business}
         Post Type: ${formData.postType}
@@ -65,9 +65,9 @@ const AiBoosting: React.FC = () => {
         const generatedResult = JSON.parse(response.text || "{}");
         setResult(generatedResult);
 
-        // Save History
+        // Save History (Unified Table)
         if (user?.email) {
-            await supabase.from('km_ai_histories').insert([{
+            await supabase.from('ai_history').insert([{
                 user_email: user.email,
                 tool_name: 'BOOSTING',
                 input_data: formData,

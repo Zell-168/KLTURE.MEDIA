@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { useLang } from '../App';
+import { useLang, useAuth } from '../App';
 import Section from '../components/ui/Section';
 import { TRAINERS } from '../constants';
 import { Link, useNavigate } from 'react-router-dom';
@@ -12,6 +12,7 @@ import BannerCarousel from '../components/ui/BannerCarousel';
 
 const MiniProgram: React.FC = () => {
   const { t } = useLang();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [programs, setPrograms] = useState<DbMiniProgram[]>([]);
   const [allTrainers, setAllTrainers] = useState<DbTrainer[]>([]);
@@ -66,7 +67,11 @@ const MiniProgram: React.FC = () => {
   }, []);
 
   const handleRegister = (program: string) => {
-    navigate('/contact', { state: { selectedProgram: program } });
+    if (user) {
+        navigate('/contact', { state: { selectedProgram: program } });
+    } else {
+        navigate('/signup', { state: { returnTo: '/contact', selectedProgram: program } });
+    }
   };
 
   return (
