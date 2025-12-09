@@ -5,6 +5,7 @@ import Section from '../../components/ui/Section';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, Rocket, ArrowLeft, CheckCircle2, LayoutTemplate } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { GoogleGenAI } from "@google/genai";
 
 const AiBoosting: React.FC = () => {
   const { user } = useAuth();
@@ -25,33 +26,44 @@ const AiBoosting: React.FC = () => {
      if (!user) navigate('/signin');
   }, [user, navigate]);
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
      if (!formData.business || !formData.budget || !formData.days) {
          alert('Please fill in required fields (Business, Budget, Days)');
          return;
      }
      
      setLoading(true);
+     setResult(null);
      
-     // Simulation
-     setTimeout(async () => {
-        const dailyBudget = (parseFloat(formData.budget) / parseInt(formData.days)).toFixed(2);
-        const generatedResult = {
-            dailyBudget,
-            objective: formData.postType === 'video' ? 'Video Views / Engagement' : 'Engagement / Messages',
-            audience: `Location: Cambodia (Phnom Penh priority)\nAge: 18-40\nInterests: ${formData.business}, Shopping, Lifestyle`,
-            placements: 'Facebook Feed, Instagram Feed, Reels (Automatic Placements)',
-            captionAnalysis: formData.caption.length > 50 
-                ? 'Your caption length is good. Ensure you have a clear Call To Action (CTA).' 
-                : 'Your caption is short. Consider adding more value proposition and a strong CTA.',
-            variants: formData.abTesting ? [
-                { name: 'Variant A', desc: 'Focus on "Benefit" (Save time/money)' },
-                { name: 'Variant B', desc: 'Focus on "Fear of Missing Out" (Limited Offer)' }
-            ] : []
-        };
+     try {
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const prompt = `Plan a Facebook boosting strategy.
+        Business: ${formData.business}
+        Post Type: ${formData.postType}
+        Budget: $${formData.budget}
+        Duration: ${formData.days} days
+        Caption: ${formData.caption}
+        AB Testing: ${formData.abTesting}
 
+        Return a JSON object with these fields:
+        - dailyBudget (string)
+        - objective (string)
+        - audience (string, detailed targeting)
+        - placements (string)
+        - captionAnalysis (string, critique and advice)
+        - variants (array of objects with 'name' and 'desc', empty if AB Testing is false)
+        `;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                responseMimeType: 'application/json'
+            }
+        });
+
+        const generatedResult = JSON.parse(response.text || "{}");
         setResult(generatedResult);
-        setLoading(false);
 
         // Save History
         if (user?.email) {
@@ -62,7 +74,12 @@ const AiBoosting: React.FC = () => {
                 result_data: generatedResult
             }]);
         }
-     }, 2000);
+     } catch (err) {
+        console.error("Gemini Error", err);
+        alert("Failed to plan strategy. Please try again.");
+     } finally {
+        setLoading(false);
+     }
   };
 
   return (
@@ -173,7 +190,7 @@ const AiBoosting: React.FC = () => {
                         <div className="grid sm:grid-cols-3 gap-4 text-sm">
                             <div className="bg-black/40 p-3 rounded-lg">
                                 <span className="block text-zinc-500 text-xs uppercase mb-1">Recommended Daily</span>
-                                <span className="text-white font-bold text-lg">${result.dailyBudget} / day</span>
+                                <span className="text-white font-bold text-lg">{result.dailyBudget}</span>
                             </div>
                              <div className="bg-black/40 p-3 rounded-lg">
                                 <span className="block text-zinc-500 text-xs uppercase mb-1">Objective</span>
@@ -198,7 +215,7 @@ const AiBoosting: React.FC = () => {
                         </div>
                     </div>
 
-                    {result.variants.length > 0 && (
+                    {result.variants && result.variants.length > 0 && (
                         <div className="glass-panel p-6 rounded-2xl border border-white/5">
                              <h4 className="font-bold text-yellow-400 mb-4">A/B Testing Variants</h4>
                              <div className="space-y-4">

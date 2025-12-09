@@ -3,8 +3,9 @@ import React, { useState } from 'react';
 import { useAuth } from '../../App';
 import Section from '../../components/ui/Section';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, Zap, ArrowLeft, Download } from 'lucide-react';
+import { Loader2, Zap, ArrowLeft } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { GoogleGenAI } from "@google/genai";
 
 const AiMarketing: React.FC = () => {
   const { user } = useAuth();
@@ -33,51 +34,32 @@ const AiMarketing: React.FC = () => {
     setLoading(true);
     setResult(null);
 
-    // Simulation of AI Generation
-    setTimeout(async () => {
-        const generatedText = `យុទ្ធនាការផ្សព្វផ្សាយសម្រាប់: ${formData.businessName}
+    try {
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const prompt = `Generate a comprehensive marketing campaign strategy for:
+        Business Name: ${formData.businessName}
+        Product/Service: ${formData.productService}
+        Type: ${formData.type}
+        Monthly Budget: $${formData.budget}
+        
+        Include:
+        1. Campaign Objective
+        2. Target Audience
+        3. Key Messages
+        4. Online Strategy
+        5. Offline Strategy (if applicable)
+        6. Budget Allocation
+        7. Expected Results
+        
+        Keep the tone professional yet actionable. Output in clear Markdown format.`;
 
-១. គោលបំណងយុទ្ធនាការ:
-   - បង្កើតការស្គាល់ម៉ាកឱ្យបាន ៣០% ក្នុងរយៈពេល ៣ខែ
-   - បង្កើតតម្រូវការអ្នកប្រើប្រាស់ថ្មី ១០០ នាក់ក្នុងមួយខែ
-   - កាត់បន្ថយការចំណាយសម្រាប់ការទទួលបានអតិថិជន
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+        });
 
-២. ក្រុមអ្នកប្រើប្រាស់គោលដៅ:
-   - អាយុ ២៥-៤៥ ឆ្នាំ
-   - មានប្រាក់ចំណូលមធ្យមទៅខ្ពស់
-   - រស់នៅក្នុងទីក្រុងធំៗ
-   - ចូលចិត្តបច្ចេកវិទ្យា និងដំណោះស្រាយទំនើប
-
-៣. សារសំខាន់:
-   - "${formData.productService} - ដំណោះស្រាយដែលងាយស្រួល និងមានប្រសិទ្ធភាពសម្រាប់អ្នក"
-   - "សន្សំសំចៃពេលវេលា និងប្រាក់ចំណូលជាមួយ ${formData.businessName}"
-
-៤. យុទ្ធសាស្ត្រផ្សព្វផ្សាយតាមអ៊ីនធឺណិត:
-   - ការផ្សាយពាណិជ្ជកម្មតាម Facebook និង Instagram
-   - SEO សម្រាប់ពាក្យគន្លឹះដែលទាក់ទង
-   - ការផ្សព្វផ្សាយតាមអ៊ីមែល
-   - ការផ្សព្វផ្សាយតាមវេបសាយ
-
-៥. យុទ្ធសាស្ត្រផ្សព្វផ្សាយក្រៅអ៊ីនធឺណិត:
-   - ការចុះផ្សាយក្នុងកាសែតក្នុងតំបន់
-   - ការចែកផ្សាយផ្លាកពាណិជ្ជកម្ម
-   - ការចុះផ្សាយតាមវិទ្យុ
-
-៦. ការចែកចាយថវិកា ($${formData.budget}/ខែ):
-   - ផ្សាយពាណិជ្ជកម្មតាមអ៊ីនធឺណិត: ៤០%
-   - ផ្សាយពាណិជ្ជកម្មក្រៅអ៊ីនធឺណិត: ៣០%
-   - ការបង្កើតមាតិកា: ២០%
-   - ថវិកាសម្រាប់ហានិភ័យ: ១០%
-
-៧. លទ្ធផលដែលរំពឹងទុក:
-   - ការកើនឡើងនៃការទទួលស្គាល់ម៉ាក ២៥% ក្នុងរយៈពេល ៣ខែ
-   - ការកើនឡើងនៃការទាក់ទងពីអតិថិជន ៤០%
-   - ការត្រឡប់មកវិញនៃការវិនិយោគ (ROI) ៣:១
-
-សំណាងល្អចំពោះយុទ្ធនាការផ្សព្វផ្សាយរបស់អ្នក!`;
-
+        const generatedText = response.text || "No content generated.";
         setResult(generatedText);
-        setLoading(false);
 
         // Save to History
         if (user?.email) {
@@ -88,7 +70,12 @@ const AiMarketing: React.FC = () => {
                 result_data: { text: generatedText }
             }]);
         }
-    }, 2000);
+    } catch (err) {
+        console.error("Gemini Error", err);
+        setResult("Error generating campaign. Please try again later.");
+    } finally {
+        setLoading(false);
+    }
   };
 
   return (

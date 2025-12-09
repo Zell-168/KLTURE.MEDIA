@@ -1,44 +1,10 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth, useLang } from '../../App';
 import Section from '../../components/ui/Section';
-import { Bot, Zap, Rocket, Search, Lock } from 'lucide-react';
+import { Bot, PenTool, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const AiHub: React.FC = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const { t } = useLang();
-
-  const tools = [
-    {
-      id: 'marketing',
-      title: 'AI Marketing Ideas',
-      description: 'Generate comprehensive marketing campaigns including objectives, strategies, and budget allocation tailored to your business.',
-      icon: <Zap size={32} className="text-yellow-500" />,
-      path: '/ai/marketing',
-      color: 'from-yellow-500/20 to-orange-500/20',
-      border: 'group-hover:border-yellow-500/50'
-    },
-    {
-      id: 'boosting',
-      title: 'AI Boosting Ideas',
-      description: 'Create optimized Facebook Ad plans with audience targeting, captions, budget recommendations, and A/B testing strategies.',
-      icon: <Rocket size={32} className="text-blue-500" />,
-      path: '/ai/boosting',
-      color: 'from-blue-500/20 to-cyan-500/20',
-      border: 'group-hover:border-blue-500/50'
-    },
-    {
-      id: 'spy',
-      title: "AI Facebook's Spy",
-      description: 'Reverse-engineer any Facebook post to uncover potential ad spend, targeting, and strategy using advanced AI analysis.',
-      icon: <Search size={32} className="text-red-500" />,
-      path: '/ai/spy',
-      color: 'from-red-500/20 to-pink-500/20',
-      border: 'group-hover:border-red-500/50'
-    }
-  ];
 
   return (
     <div className="min-h-screen">
@@ -53,51 +19,42 @@ const AiHub: React.FC = () => {
       </Section>
 
       <Section>
-        <div className="grid md:grid-cols-3 gap-8">
-          {tools.map((tool) => (
-            <div 
-              key={tool.id}
-              onClick={() => navigate(tool.path)}
-              className={`glass-panel p-8 rounded-3xl relative overflow-hidden group cursor-pointer transition-all duration-300 hover:-translate-y-2 border border-white/5 ${tool.border}`}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
+             {/* Fight Thai Tool */}
+             <Link 
+                to="/ai/fight-thai"
+                className="glass-panel p-8 rounded-2xl group hover:-translate-y-2 transition-all duration-300 hover:shadow-[0_10px_30px_-10px_rgba(220,38,38,0.2)] border border-white/5 hover:border-red-500/30"
             >
-              {/* Background Gradient */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${tool.color} opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`}></div>
-              
-              <div className="relative z-10">
-                <div className="mb-6 bg-black/40 w-fit p-4 rounded-2xl border border-white/10 shadow-lg">
-                  {tool.icon}
+                <div className="w-12 h-12 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center mb-6 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                    <PenTool size={24} />
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-3">{tool.title}</h3>
-                <p className="text-zinc-400 leading-relaxed mb-6 min-h-[80px]">
-                  {tool.description}
+                <h3 className="text-xl font-bold text-white mb-2">Fight Thai</h3>
+                <p className="text-zinc-400 text-sm mb-6 h-12">
+                    Smart Tweet Generator. Generate fresh tweet ideas from your old posts or reference links using AI.
                 </p>
-                
-                <div className="flex items-center gap-2 font-bold text-sm">
-                   {user ? (
-                     <span className="text-white flex items-center gap-2 group-hover:gap-3 transition-all">
-                       Launch Tool <span className="text-lg">→</span>
-                     </span>
-                   ) : (
-                     <span className="text-zinc-500 flex items-center gap-2">
-                       <Lock size={14} /> Login Required
-                     </span>
-                   )}
+                <div className="flex items-center text-blue-400 font-bold text-sm group-hover:text-blue-300">
+                    Try Generator <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
                 </div>
-              </div>
+            </Link>
+
+            {/* Placeholder for other tools */}
+            <div className="glass-panel p-8 rounded-2xl border border-white/5 opacity-50 relative overflow-hidden">
+                <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] flex items-center justify-center z-10">
+                    <span className="bg-white/10 text-white px-3 py-1 rounded-full text-xs font-bold border border-white/10">Coming Soon</span>
+                </div>
+                <div className="w-12 h-12 bg-zinc-800 rounded-xl mb-6"></div>
+                <h3 className="text-xl font-bold text-zinc-600 mb-2">Marketing Planner</h3>
+                <p className="text-zinc-700 text-sm mb-6">AI-driven marketing campaign strategies.</p>
             </div>
-          ))}
+             <div className="glass-panel p-8 rounded-2xl border border-white/5 opacity-50 relative overflow-hidden">
+                <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] flex items-center justify-center z-10">
+                    <span className="bg-white/10 text-white px-3 py-1 rounded-full text-xs font-bold border border-white/10">Coming Soon</span>
+                </div>
+                <div className="w-12 h-12 bg-zinc-800 rounded-xl mb-6"></div>
+                <h3 className="text-xl font-bold text-zinc-600 mb-2">Ad Spy</h3>
+                <p className="text-zinc-700 text-sm mb-6">Reverse engineer Facebook ads.</p>
+            </div>
         </div>
-        
-        {!user && (
-           <div className="mt-12 text-center">
-              <button 
-                onClick={() => navigate('/signin')}
-                className="bg-white text-black px-8 py-3 rounded-xl font-bold hover:bg-zinc-200 transition-colors shadow-lg"
-              >
-                Sign In to Access Tools
-              </button>
-           </div>
-        )}
       </Section>
     </div>
   );

@@ -110,7 +110,7 @@ export interface SalesRecord {
 export interface DbAiHistory {
   id: number;
   user_email: string;
-  tool_name: 'MARKETING' | 'BOOSTING' | 'SPY';
+  tool_name: 'MARKETING' | 'BOOSTING' | 'SPY' | 'FIGHT_THAI';
   input_data: any;
   result_data: any;
   created_at: string;
