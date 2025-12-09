@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../App';
 import Section from '../../components/ui/Section';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, ArrowLeft, Zap, Copy, AlertTriangle, RefreshCw, PenTool } from 'lucide-react';
+import { Loader2, ArrowLeft, Zap, Copy, AlertTriangle, RefreshCw, PenTool, Save } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { GoogleGenAI } from "@google/genai";
 
@@ -25,6 +25,7 @@ const AiFightThai: React.FC = () => {
   const [warningMsg, setWarningMsg] = useState<string | null>(null);
   const [results, setResults] = useState<string[]>([]);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [savedToHistory, setSavedToHistory] = useState(false);
 
   React.useEffect(() => {
      if (!user) navigate('/signin');
@@ -93,16 +94,30 @@ const AiFightThai: React.FC = () => {
     setErrorMsg(null);
     setWarningMsg(null);
     setResults([]);
+    setSavedToHistory(false);
 
     const handleSuccess = async (tweets: string[], provider: string) => {
         setResults(tweets);
+        
+        // Record History
         if (user?.email) {
-            await supabase.from('ai_history').insert([{
-                user_email: user.email,
-                tool_name: 'FIGHT_THAI',
-                input_data: formData,
-                result_data: { tweets, provider }
-            }]);
+            try {
+                const { error } = await supabase.from('ai_history').insert([{
+                    user_email: user.email,
+                    tool_name: 'FIGHT_THAI',
+                    input_data: formData,
+                    result_data: { tweets, provider }
+                }]);
+                
+                if (!error) {
+                    setSavedToHistory(true);
+                    console.log("Usage history recorded successfully.");
+                } else {
+                    console.error("Failed to save history:", error);
+                }
+            } catch (err) {
+                console.error("History insert error:", err);
+            }
         }
     };
 
@@ -292,9 +307,16 @@ const AiFightThai: React.FC = () => {
         {/* Results */}
         {results.length > 0 && (
             <div className="mt-12 animate-fade-in">
-                <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-                    <Zap className="text-yellow-400" /> Generated Tweets
-                </h2>
+                <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                        <Zap className="text-yellow-400" /> Generated Tweets
+                    </h2>
+                    {savedToHistory && (
+                        <div className="text-xs font-bold text-green-400 flex items-center gap-1 bg-green-900/20 px-3 py-1.5 rounded-full border border-green-500/20">
+                            <Save size={14} /> Saved to History
+                        </div>
+                    )}
+                </div>
 
                 {/* Original Preview */}
                 <div className="bg-white/5 border border-white/10 rounded-xl p-4 mb-6">

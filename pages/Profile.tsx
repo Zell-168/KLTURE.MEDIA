@@ -435,7 +435,9 @@ const Profile: React.FC = () => {
                                                     {item.tool_name === 'FIGHT_THAI' && <PenTool size={16} />}
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-white text-sm">{item.tool_name} GENERATION</p>
+                                                    <p className="font-bold text-white text-sm uppercase tracking-wide">
+                                                        {item.tool_name === 'FIGHT_THAI' ? 'Fight Thai' : item.tool_name.replace('_', ' ')}
+                                                    </p>
                                                     <p className="text-xs text-zinc-500">{new Date(item.created_at).toLocaleString()}</p>
                                                 </div>
                                             </div>
@@ -446,17 +448,26 @@ const Profile: React.FC = () => {
                                             <div className="p-4 border-t border-white/10 bg-white/5 text-sm text-zinc-300">
                                                 <div className="mb-4">
                                                     <h4 className="font-bold text-xs uppercase text-zinc-500 mb-2">Input Data</h4>
-                                                    <pre className="bg-black/50 p-2 rounded text-xs overflow-x-auto border border-white/5">
+                                                    <pre className="bg-black/50 p-2 rounded text-xs overflow-x-auto border border-white/5 text-zinc-400">
                                                         {JSON.stringify(item.input_data, null, 2)}
                                                     </pre>
                                                 </div>
                                                 <div>
                                                     <h4 className="font-bold text-xs uppercase text-zinc-500 mb-2">Result Data</h4>
-                                                    <div className="bg-black/50 p-3 rounded border border-white/5 whitespace-pre-wrap max-h-60 overflow-y-auto">
-                                                        {item.tool_name === 'MARKETING' ? (
-                                                            item.result_data.text
+                                                    <div className="bg-black/50 p-3 rounded border border-white/5 max-h-80 overflow-y-auto custom-scrollbar">
+                                                        {item.tool_name === 'FIGHT_THAI' && item.result_data?.tweets ? (
+                                                            <div className="space-y-3">
+                                                                <p className="text-xs text-zinc-500 italic mb-2">Provider: {item.result_data.provider}</p>
+                                                                {item.result_data.tweets.map((tweet: string, idx: number) => (
+                                                                    <div key={idx} className="p-3 bg-white/5 rounded-lg border border-white/5 text-zinc-200 text-sm whitespace-pre-wrap">
+                                                                        {tweet}
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        ) : item.tool_name === 'MARKETING' ? (
+                                                            <div className="whitespace-pre-wrap">{item.result_data.text}</div>
                                                         ) : (
-                                                            <pre className="text-xs">{JSON.stringify(item.result_data, null, 2)}</pre>
+                                                            <pre className="text-xs whitespace-pre-wrap">{JSON.stringify(item.result_data, null, 2)}</pre>
                                                         )}
                                                     </div>
                                                 </div>
